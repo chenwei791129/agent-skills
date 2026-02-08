@@ -24,6 +24,16 @@ Run the launch script via Bash tool:
 
 The script handles everything automatically: quits existing Chrome, launches with debug flags, waits and verifies the connection. If Chrome debug mode is already running, it skips and reuses it.
 
+## MCP Installation
+
+If `mcp__chrome-devtools__*` tools are not available, guide the user to install the MCP server:
+
+```bash
+claude mcp add --scope user chrome-devtools -- npx chrome-devtools-mcp@latest --autoConnect
+```
+
+The user needs to restart Claude Code after installation for the MCP tools to become available.
+
 ## Common Errors
 
 | Error | Fix |
