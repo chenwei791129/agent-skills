@@ -1,12 +1,6 @@
 ---
 name: powershell-style-guide
-description: >
-  Review and write PowerShell code following community style guide and best practices
-  (based on PoshCode/PowerShellPracticeAndStyle). Use when: (1) writing new PowerShell
-  scripts, functions, or modules (.ps1, .psm1, .psd1), (2) reviewing PowerShell code
-  for style compliance, (3) refactoring PowerShell code, (4) the user asks to "check
-  PowerShell style", "review my PowerShell code", "write a PowerShell script/function",
-  or any task involving PowerShell scripting where code quality matters.
+description: Review and write PowerShell code following community style guide and best practices (based on PoshCode/PowerShellPracticeAndStyle). Use when writing new PowerShell scripts, functions, or modules (.ps1, .psm1, .psd1), reviewing PowerShell code for style compliance, refactoring PowerShell code, or any task involving PowerShell scripting where code quality matters.
 ---
 
 # PowerShell Style Guide
