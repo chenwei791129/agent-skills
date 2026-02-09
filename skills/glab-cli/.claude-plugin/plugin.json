@@ -1,0 +1,9 @@
+{
+  "name": "glab-cli",
+  "description": "GitLab CLI integration with focused skills for authentication, repositories, merge requests, CI/CD pipelines, variables, and runners",
+  "version": "1.0.0",
+  "author": {
+    "name": "jeff.sun"
+  },
+  "keywords": ["gitlab", "glab", "cli", "merge-request", "pipeline", "ci-cd", "runner", "variable"]
+}
