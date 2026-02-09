@@ -31,4 +31,15 @@ curl -sL https://github.com/chenwei791129/my-agent-config/archive/refs/heads/mai
 
 | Skill | Description |
 |-------|-------------|
+| `acli-jira` | Jira CLI operations and JQL queries |
 | `chrome-devtools` | Launch Chrome with remote debugging for DevTools MCP integration |
+| `gh-actions-permissions` | GitHub Actions workflow permissions management |
+| `glab-cli` | GitLab CLI repository and CI/CD management |
+| `go-concurrency-patterns` | Go concurrency programming and goroutine patterns |
+| `imagen` | AI image generation using Google Gemini |
+| `postgres` | Read-only SQL query execution for PostgreSQL |
+| `powershell-style-guide` | PowerShell code style and best practices review |
+| `prompt-engineering` | LLM prompt optimization and design patterns |
+| `shell-style-guide` | Shell/Bash code style review guide |
+| `skill-creator` | Guide for creating and designing effective skills |
+| `styling` | CSS and Tailwind styling best practices |
