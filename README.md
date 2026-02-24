@@ -33,6 +33,7 @@ curl -sL https://github.com/chenwei791129/my-agent-config/archive/refs/heads/mai
 |-------|-------------|
 | `acli-jira` | Jira CLI operations and JQL queries |
 | `chrome-devtools` | Launch Chrome with remote debugging for DevTools MCP integration |
+| `deep-research` | Deep multi-step web research using Agent Teams for parallel, coordinated investigation |
 | `gh-actions-permissions` | GitHub Actions workflow permissions management |
 | `glab-cli` | GitLab CLI repository and CI/CD management |
 | `go-concurrency-patterns` | Go concurrency programming and goroutine patterns |
