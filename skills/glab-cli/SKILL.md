@@ -34,6 +34,8 @@ If authentication fails, see [Authentication Setup](#authentication-setup).
 | Task | Command |
 |------|---------|
 | Auth status | `glab auth status` |
+| Check token expiry | `glab api personal_access_tokens/self \| jq '{name, expires_at}'` |
+| Rotate token | `~/.claude/skills/glab-cli/scripts/rotate-gitlab-token --yes` |
 | Create repo | `glab repo create <name> --group <group>` |
 | Clone repo | `glab repo clone <owner/repo>` |
 | Create MR | `glab mr create` |
@@ -44,7 +46,7 @@ If authentication fails, see [Authentication Setup](#authentication-setup).
 | Pipeline info | `glab ci get -p <id> -R <repo> -F json` |
 | Pipeline jobs | `glab ci get -p <id> -R <repo> --with-job-details -F json` |
 | View job log | `glab ci trace <job-id> -R <repo>` |
-| Trigger job | `glab ci trigger <job-id> -R <repo>` |
+| Trigger manual job | `glab ci trigger <job-id> -R <repo>` (find job ID from pipeline first) |
 | Download artifacts (latest) | `glab job artifact <branch> <job-name> -R <repo>` |
 | Download artifacts (by job ID) | `glab api /projects/<path>/jobs/<id>/artifacts > file.zip` |
 | List variables | `glab variable list` |
@@ -82,6 +84,30 @@ echo "<YOUR_TOKEN>" | glab auth login --hostname gitlab.domain.com --stdin --git
 ```bash
 glab auth status
 ```
+
+### Token Rotation (Auto-Renew Before Expiry)
+
+**IMPORTANT — Proactive Token Rotation:**
+When any `glab` command fails with `token expired`, `401 Unauthorized`, or `failed to authenticate`, **first attempt to rotate the token automatically** before asking the user to manually create one.
+
+**Check token expiry:**
+
+```bash
+glab api personal_access_tokens/self --hostname gitlab.domain.com | jq '{name, expires_at, active, scopes}'
+```
+
+**Rotate using the bundled script:**
+
+```bash
+~/.claude/skills/glab-cli/scripts/rotate-gitlab-token --hostname gitlab.domain.com --yes
+```
+
+- The `--yes` flag skips the interactive confirmation (required for agent use).
+- The script rotates the current token, sets a new expiry date **1 year from today**, and automatically updates `glab auth`.
+- The old token is **immediately revoked** after rotation.
+- Requires GitLab **16.0+** for the Rotation API.
+
+**When rotation fails** (token already expired or GitLab < 16.0), fall back to the manual flow above.
 
 ### Refresh OAuth Token
 
@@ -227,6 +253,29 @@ glab mr revoke 123     # Premium/EE only
 
 For complete reference including all commands, monitoring patterns, artifacts, and debugging workflows, see [references/cicd-pipelines.md](references/cicd-pipelines.md).
 
+### Triggering Jobs — Correct Workflow
+
+**IMPORTANT: Do NOT use `glab ci run` to trigger jobs.** `glab ci run` creates a brand new pipeline via API, which is commonly blocked by `workflow:rules` (e.g., rules that only allow `push` or `schedule` sources). This results in `400 Pipeline filtered out by workflow rules` errors.
+
+**Instead, always follow this sequence:**
+
+1. **Check if a pipeline already exists** (push events auto-create pipelines):
+   ```bash
+   glab ci list --per-page 3 -F json | jq '.[] | {id, status, ref}'
+   ```
+
+2. **Find the target job** in the latest pipeline:
+   ```bash
+   glab ci get -p <pipeline-id> --with-job-details -F json | jq '.jobs[] | {id, name, status, stage}'
+   ```
+
+3. **Trigger the manual job** by job ID:
+   ```bash
+   glab ci trigger <job-id>
+   ```
+
+**When to use `glab ci run`:** Only when you need to create a pipeline on a branch that has no recent pipeline AND the project's `workflow:rules` allow API-triggered pipelines. This is rare — most projects restrict pipeline creation to push/schedule/MR events.
+
 ### Most Common Operations
 
 ```bash
@@ -247,9 +296,6 @@ glab ci trigger <job-id> -R <repo>
 
 # Retry failed job
 glab ci retry <job-id> -R <repo>
-
-# Run new pipeline
-glab ci run -b main
 
 # Download artifacts (latest pipeline)
 glab job artifact <branch> <job-name> -R <repo>

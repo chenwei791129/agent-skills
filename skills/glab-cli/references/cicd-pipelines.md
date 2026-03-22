@@ -197,10 +197,35 @@ glab ci cancel job <job-id>
 
 ---
 
+## Trigger Job Workflow
+
+**IMPORTANT: When asked to "trigger a job" or "run scan", do NOT use `glab ci run`.** Most projects use `workflow:rules` that restrict pipeline creation to `push`/`schedule`/`merge_request` sources, so `glab ci run` (which uses API source) will fail with `400 Pipeline filtered out by workflow rules`.
+
+**Correct approach — find and trigger existing manual jobs:**
+
+```bash
+# Step 1: Find the latest pipeline (push events auto-create pipelines)
+glab ci list --per-page 3 -F json | jq '.[] | {id, status, ref}'
+
+# Step 2: List jobs and find the manual one
+glab ci get -p <pipeline-id> --with-job-details -F json | \
+  jq '.jobs[] | {id, name, status, stage}'
+
+# Step 3: Trigger the manual job by ID
+glab ci trigger <job-id>
+```
+
+**Only use `glab ci run` when:**
+- There is no existing pipeline on the target branch
+- AND the project's `workflow:rules` explicitly allow `api` or `trigger` source
+- This is rare in practice
+
+---
+
 ## Pipeline Control
 
 ```bash
-# Run new pipeline
+# Run new pipeline (CAUTION: often blocked by workflow:rules, see "Trigger Job Workflow" above)
 glab ci run
 glab ci run -b main
 glab ci run --variables "KEY:value"

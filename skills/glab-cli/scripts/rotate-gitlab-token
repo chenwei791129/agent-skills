@@ -1,0 +1,135 @@
+#!/bin/bash
+# Rotate GitLab personal access token and update glab CLI authentication.
+# Requires: glab, jq
+# Usage: rotate-gitlab-token [--hostname gitlab.example.com] [--yes]
+
+set -euo pipefail
+
+# --- Configuration ---
+EXPIRE_DAYS=365
+
+# --- Parse arguments ---
+HOSTNAME=""
+AUTO_CONFIRM=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --hostname)
+      HOSTNAME="$2"
+      shift 2
+      ;;
+    --yes|-y)
+      AUTO_CONFIRM=true
+      shift
+      ;;
+    --help|-h)
+      echo "Usage: $0 [--hostname gitlab.example.com] [--yes]"
+      echo ""
+      echo "Rotates the current GitLab personal access token and updates glab auth."
+      echo "If --hostname is not specified, uses the default authenticated host."
+      echo ""
+      echo "Options:"
+      echo "  --hostname   GitLab instance hostname"
+      echo "  --yes, -y    Skip confirmation prompt (for automation/agent use)"
+      echo "  --help, -h   Show this help"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# --- Dependency check ---
+for cmd in glab jq; do
+  if ! command -v "$cmd" &>/dev/null; then
+    echo "Error: '$cmd' is not installed." >&2
+    exit 1
+  fi
+done
+
+# --- Resolve hostname ---
+if [[ -z "$HOSTNAME" ]]; then
+  HOSTNAME=$(glab config get host 2>/dev/null || true)
+  if [[ -z "$HOSTNAME" ]]; then
+    HOSTNAME=$(glab auth status 2>&1 | grep -oP '(?<=Logged in to )\S+' || true)
+  fi
+  if [[ -z "$HOSTNAME" ]]; then
+    echo "Error: Cannot detect GitLab hostname. Use --hostname to specify." >&2
+    exit 1
+  fi
+fi
+
+echo "GitLab host: $HOSTNAME"
+
+# --- Check current token info ---
+echo "Checking current token status..."
+TOKEN_INFO=$(glab api personal_access_tokens/self --hostname "$HOSTNAME" 2>/dev/null) || {
+  echo "Error: Failed to query current token. Is glab authenticated?" >&2
+  exit 1
+}
+
+TOKEN_NAME=$(echo "$TOKEN_INFO" | jq -r '.name')
+CURRENT_EXPIRES=$(echo "$TOKEN_INFO" | jq -r '.expires_at')
+echo "Token name:    $TOKEN_NAME"
+echo "Current expiry: $CURRENT_EXPIRES"
+
+# --- Calculate new expiry date (1 year from today) ---
+if date -v+1d &>/dev/null 2>&1; then
+  # macOS
+  NEW_EXPIRES=$(date -v+${EXPIRE_DAYS}d '+%Y-%m-%d')
+else
+  # Linux
+  NEW_EXPIRES=$(date -d "+${EXPIRE_DAYS} days" '+%Y-%m-%d')
+fi
+
+echo "New expiry:     $NEW_EXPIRES"
+echo ""
+
+# --- Confirm ---
+if [[ "$AUTO_CONFIRM" != true ]]; then
+  read -rp "Proceed with rotation? (y/N) " CONFIRM
+  if [[ "$CONFIRM" != [yY] ]]; then
+    echo "Aborted."
+    exit 0
+  fi
+fi
+
+# --- Rotate token ---
+echo "Rotating token..."
+ROTATE_RESPONSE=$(glab api --method POST personal_access_tokens/self/rotate \
+  -f "expires_at=$NEW_EXPIRES" \
+  --hostname "$HOSTNAME" 2>/dev/null) || {
+  echo "Error: Token rotation failed." >&2
+  echo "Possible causes:" >&2
+  echo "  - Token is already expired (must use Web UI to create a new one)" >&2
+  echo "  - GitLab version < 16.0 (rotation API not available)" >&2
+  exit 1
+}
+
+NEW_TOKEN=$(echo "$ROTATE_RESPONSE" | jq -r '.token')
+NEW_TOKEN_ID=$(echo "$ROTATE_RESPONSE" | jq -r '.id')
+
+if [[ -z "$NEW_TOKEN" || "$NEW_TOKEN" == "null" ]]; then
+  echo "Error: Rotation response did not contain a new token." >&2
+  echo "Response: $ROTATE_RESPONSE" >&2
+  exit 1
+fi
+
+echo "New token ID: $NEW_TOKEN_ID"
+
+# --- Update glab authentication ---
+echo "Updating glab auth..."
+echo "$NEW_TOKEN" | glab auth login --hostname "$HOSTNAME" --stdin
+
+echo ""
+echo "Done! Token rotated successfully."
+echo "  Host:    $HOSTNAME"
+echo "  Name:    $TOKEN_NAME"
+echo "  Expires: $NEW_EXPIRES"
+echo ""
+echo "WARNING: The old token has been revoked."
+echo "If other tools or CI/CD use the old token, update them with the new one."
+echo "New token value (save it now, it won't be shown again):"
+echo ""
+echo "  $NEW_TOKEN"
