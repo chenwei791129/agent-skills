@@ -42,6 +42,5 @@ curl -sL https://github.com/chenwei791129/my-agent-config/archive/refs/heads/mai
 | `powershell-style-guide` | PowerShell code style and best practices review |
 | `prompt-engineering` | LLM prompt optimization and design patterns |
 | `shell-style-guide` | Shell/Bash code style review guide |
-| `skill-creator` | Guide for creating and designing effective skills |
 | `slack-notify` | Send Slack notifications via Incoming Webhook with mrkdwn support |
 | `styling` | CSS and Tailwind styling best practices |
