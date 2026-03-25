@@ -32,6 +32,7 @@ curl -sL https://github.com/chenwei791129/my-agent-config/archive/refs/heads/mai
 | Skill | Description |
 |-------|-------------|
 | `acli-jira` | Jira CLI operations and JQL queries |
+| `buffett-investment-strategy` | Warren Buffett's investment analysis framework from 60 years of Berkshire Hathaway letters and annual meetings |
 | `chrome-devtools` | Launch Chrome with remote debugging for DevTools MCP integration |
 | `deep-research` | Deep multi-step web research using Agent Teams for parallel, coordinated investigation |
 | `gh-actions-permissions` | GitHub Actions workflow permissions management |
