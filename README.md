@@ -1,4 +1,4 @@
-# my-agent-config
+# agent-skills
 
 Shared [Claude Code](https://claude.com/claude-code) skills and agent configuration.
 
@@ -7,8 +7,8 @@ Shared [Claude Code](https://claude.com/claude-code) skills and agent configurat
 ### All Skills
 
 ```bash
-curl -sL https://github.com/chenwei791129/my-agent-config/archive/refs/heads/main.tar.gz \
-  | tar xz --strip-components=2 -C ~/.claude/skills/ my-agent-config-main/skills/
+curl -sL https://github.com/chenwei791129/agent-skills/archive/refs/heads/main.tar.gz \
+  | tar xz --strip-components=2 -C ~/.claude/skills/ agent-skills-main/skills/
 ```
 
 ### A Single Skill
@@ -16,15 +16,15 @@ curl -sL https://github.com/chenwei791129/my-agent-config/archive/refs/heads/mai
 Replace `<skill-name>` with the skill directory name (e.g. `chrome-devtools`):
 
 ```bash
-curl -sL https://github.com/chenwei791129/my-agent-config/archive/refs/heads/main.tar.gz \
-  | tar xz --strip-components=2 -C ~/.claude/skills/ my-agent-config-main/skills/<skill-name>
+curl -sL https://github.com/chenwei791129/agent-skills/archive/refs/heads/main.tar.gz \
+  | tar xz --strip-components=2 -C ~/.claude/skills/ agent-skills-main/skills/<skill-name>
 ```
 
 Example:
 
 ```bash
-curl -sL https://github.com/chenwei791129/my-agent-config/archive/refs/heads/main.tar.gz \
-  | tar xz --strip-components=2 -C ~/.claude/skills/ my-agent-config-main/skills/chrome-devtools
+curl -sL https://github.com/chenwei791129/agent-skills/archive/refs/heads/main.tar.gz \
+  | tar xz --strip-components=2 -C ~/.claude/skills/ agent-skills-main/skills/chrome-devtools
 ```
 
 ## Available Skills
