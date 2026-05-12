@@ -46,7 +46,6 @@ gh skill update --all
 | `gh-actions-permissions` | GitHub Actions workflow permissions management |
 | `glab-cli` | GitLab CLI repository and CI/CD management |
 | `go-concurrency-patterns` | Go concurrency programming and goroutine patterns |
-| `imagen` | AI image generation using Google Gemini |
 | `malware-repo-analysis` | Malware and supply chain attack detection in third-party git repositories using Agent Teams parallel analysis |
 | `postgres` | Read-only SQL query execution for PostgreSQL |
 | `powershell-style-guide` | PowerShell code style and best practices review |
