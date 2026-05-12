@@ -4,27 +4,34 @@ Shared [Claude Code](https://claude.com/claude-code) skills and agent configurat
 
 ## Install
 
-### All Skills
-
-```bash
-curl -sL https://github.com/chenwei791129/agent-skills/archive/refs/heads/main.tar.gz \
-  | tar xz --strip-components=2 -C ~/.claude/skills/ agent-skills-main/skills/
-```
+Requires [GitHub CLI](https://cli.github.com/) `2.90+` with the `skill` subcommand.
 
 ### A Single Skill
 
 Replace `<skill-name>` with the skill directory name (e.g. `chrome-devtools`):
 
 ```bash
-curl -sL https://github.com/chenwei791129/agent-skills/archive/refs/heads/main.tar.gz \
-  | tar xz --strip-components=2 -C ~/.claude/skills/ agent-skills-main/skills/<skill-name>
+gh skill install chenwei791129/agent-skills <skill-name> --agent claude-code --scope user
 ```
 
 Example:
 
 ```bash
-curl -sL https://github.com/chenwei791129/agent-skills/archive/refs/heads/main.tar.gz \
-  | tar xz --strip-components=2 -C ~/.claude/skills/ agent-skills-main/skills/chrome-devtools
+gh skill install chenwei791129/agent-skills chrome-devtools --agent claude-code --scope user
+```
+
+### Pick Skills Interactively
+
+Omit the skill name to choose from a list:
+
+```bash
+gh skill install chenwei791129/agent-skills --agent claude-code --scope user
+```
+
+### Update Installed Skills
+
+```bash
+gh skill update --all
 ```
 
 ## Available Skills
