@@ -22,7 +22,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: gh skill dry-run
+      - name: Ensure gh CLI >= 2.90 (for `gh skill`)
         run: |
+          set -euo pipefail
+          current=$(gh --version | awk '/^gh version/ {print $3}')
+          need=2.90.0
+          if [ "$(printf '%s\n' "$need" "$current" | sort -V | head -n1)" != "$need" ]; then
+            echo "gh $current is older than $need, installing latest…"
+            version=$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest \
+              | jq -r .tag_name | sed 's/^v//')
+            curl -fsSL "https://github.com/cli/cli/releases/download/v${version}/gh_${version}_linux_amd64.tar.gz" \
+              | tar xz
+            sudo mv "gh_${version}_linux_amd64/bin/gh" /usr/local/bin/gh
+          fi
           gh --version
-          gh skill publish --dry-run
+
+      - name: gh skill dry-run
+        run: gh skill publish --dry-run
