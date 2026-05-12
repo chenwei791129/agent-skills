@@ -1,6 +1,6 @@
 ---
 name: gh-actions-permissions
-description: Manage GitHub Actions workflow permissions using gh CLI. Use when: (1) Checking repository Actions permissions settings, (2) Enabling GitHub Actions to create or approve pull requests, (3) Troubleshooting workflow failures with "GitHub Actions is not permitted to create or approve pull requests" errors, (4) Configuring workflow permissions for tools like release-please that need PR creation access, or (5) Managing default_workflow_permissions and can_approve_pull_request_reviews settings.
+description: 'Manage GitHub Actions workflow permissions using gh CLI. Use when: (1) Checking repository Actions permissions settings, (2) Enabling GitHub Actions to create or approve pull requests, (3) Troubleshooting workflow failures with "GitHub Actions is not permitted to create or approve pull requests" errors, (4) Configuring workflow permissions for tools like release-please that need PR creation access, or (5) Managing default_workflow_permissions and can_approve_pull_request_reviews settings.'
 ---
 
 # GitHub Actions Permissions Management
