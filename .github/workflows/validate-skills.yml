@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: gh skill publish --dry-run
+      - name: gh skill dry-run
         run: |
           gh --version
           gh skill publish --dry-run
