@@ -42,6 +42,7 @@ gh skill update --all
 | `buffett-investment-strategy` | Warren Buffett's investment analysis framework from 60 years of Berkshire Hathaway letters and annual meetings |
 | `chrome-devtools` | Launch Chrome with remote debugging for DevTools MCP integration |
 | `deep-research` | Deep multi-step web research using Agent Teams for parallel, coordinated investigation |
+| `find-claude-session` | Search across past Claude Code sessions to recall what was discussed and locate the original cwd |
 | `finmind` | Query Taiwan stock financial reports (income, balance sheet, cash flow, revenue, PER) via FinMind API |
 | `gh-actions-permissions` | GitHub Actions workflow permissions management |
 | `glab-cli` | GitLab CLI repository and CI/CD management |
