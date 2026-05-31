@@ -55,3 +55,4 @@ gh skill update --all
 | `shell-style-guide` | Shell/Bash code style review guide |
 | `slack-notify` | Send Slack notifications via Incoming Webhook with mrkdwn support |
 | `styling` | CSS and Tailwind styling best practices |
+| `tw-trading-agents` | Multi-agent Taiwan-stock investment research using the TradingAgents methodology and FinMind data |
