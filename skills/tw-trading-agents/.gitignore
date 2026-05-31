@@ -1,0 +1,9 @@
+# Secrets — never commit the FinMind token
+.env
+
+# Generated snapshot output
+tw-trading-runs/
+
+# Python caches
+__pycache__/
+*.pyc
