@@ -51,6 +51,7 @@ gh skill update --all
 | `malware-repo-analysis` | Malware and supply chain attack detection in third-party git repositories using Agent Teams parallel analysis |
 | `postgres` | Read-only SQL query execution for PostgreSQL |
 | `powershell-style-guide` | PowerShell code style and best practices review |
+| `pre-goal` | Turn a vague task into a well-bounded goal prompt (Outcome, Verification, Constraints, Iteration Policy, Error Handling) before launching /goal |
 | `prompt-engineering` | LLM prompt optimization and design patterns |
 | `shell-style-guide` | Shell/Bash code style review guide |
 | `slack-notify` | Send Slack notifications via Incoming Webhook with mrkdwn support |
