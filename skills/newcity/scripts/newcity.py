@@ -59,6 +59,16 @@ POINTS_FIELD_LABELS = [
     ("NO_PO", "點數單號"),
 ]
 
+# --- announcements (最新公告) module ------------------------------------------
+# Program id for the announcements module (table CO1_PU). The query requires the
+# YN_APP read-status filter (IsAllowBlank=False): A=全部, N=未讀, Y=已讀 — omit it
+# and the backend returns zero rows. Community-scoped, so it needs the info
+# Bearer adopted in resolve_resident.
+ANN_PRO_ID = "APP_PA006"
+ANN_PAGE = "Head"
+ANN_STATUS_CODES = {"unread": "N", "all": "A", "read": "Y"}
+ANN_STATUS_NAMES = {"unread": "未讀", "all": "全部", "read": "已讀"}
+
 
 def _header(community: str, resident: str) -> None:
     header = f"社區：{community}    住戶：{resident}"
@@ -157,6 +167,24 @@ def print_points(rows: list[dict], community: str, resident: str) -> None:
         print()
 
 
+def print_announcements(
+    rows: list[dict], community: str, resident: str, status_name: str
+) -> None:
+    _header(community, resident)
+    if not rows:
+        print(f"目前沒有{status_name}公告 ✅")
+        return
+
+    print(f"共有 {len(rows)} 則{status_name}公告：\n")
+    for row in rows:
+        unread = "●" if row.get("YN_APP") == "未讀" else " "
+        date = row.get("DT_TRN", "")
+        category = row.get("SC_ANTP_text", "")
+        title = row.get("GN_TITLE", "")
+        no_pu = row.get("NO_PU", "")
+        print(f"{unread} {date}  [{category}]  {title}  ({no_pu})")
+
+
 def run_mail(client: NewcityClient, identity: dict, args: argparse.Namespace) -> None:
     rows = client.query(
         MAIL_PRO_ID,
@@ -182,6 +210,22 @@ def run_points(client: NewcityClient, identity: dict, args: argparse.Namespace) 
     print_points(rows, args.community, identity["NM_CUSTS"])
 
 
+def run_announcements(
+    client: NewcityClient, identity: dict, args: argparse.Namespace
+) -> None:
+    rows = client.query(
+        ANN_PRO_ID,
+        ANN_PAGE,
+        {"NO_COMP": identity["NO_COMP"], "YN_APP": ANN_STATUS_CODES[args.status]},
+        args.page_size,
+    )
+    if args.limit is not None:
+        rows = rows[: args.limit]
+    print_announcements(
+        rows, args.community, identity["NM_CUSTS"], ANN_STATUS_NAMES[args.status]
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="查詢 Newcity 社區 app")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -198,6 +242,19 @@ def parse_args() -> argparse.Namespace:
     points = sub.add_parser("points", help="查詢社區剩餘點數總和與明細")
     points.add_argument("--page-size", type=int, default=50, help="每頁筆數（預設 50）")
     points.set_defaults(handler=run_points, pro_id=POINTS_PRO_ID)
+
+    ann = sub.add_parser("announcements", help="查詢公告清單（預設未讀）")
+    ann.add_argument(
+        "--status",
+        choices=("unread", "all", "read"),
+        default="unread",
+        help="公告狀態：unread=未讀（預設），all=全部，read=已讀",
+    )
+    ann.add_argument(
+        "--limit", type=int, default=None, help="只顯示前 N 則（預設全部）"
+    )
+    ann.add_argument("--page-size", type=int, default=50, help="每頁筆數（預設 50）")
+    ann.set_defaults(handler=run_announcements, pro_id=ANN_PRO_ID)
 
     return parser.parse_args()
 
