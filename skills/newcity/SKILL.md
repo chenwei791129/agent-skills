@@ -49,7 +49,10 @@ uv run ~/.claude/skills/newcity/scripts/newcity.py announcements
 uv run ~/.claude/skills/newcity/scripts/newcity.py announcements --status all --limit 20
 
 # 讀取單則公告內文與附件（NO_PU 來自清單），並把附件存到指定目錄
-uv run ~/.claude/skills/newcity/scripts/newcity.py announcement PU2026060800001 --save ~/Downloads
+uv run ~/.claude/skills/newcity/scripts/newcity.py announcement PU2026010100001 --save ~/Downloads
+
+# 讀取單則公告並順便標記為已讀（badge 會 -1）
+uv run ~/.claude/skills/newcity/scripts/newcity.py announcement PU2026010100001 --mark-read
 ```
 
 子指令與參數：
@@ -63,6 +66,7 @@ uv run ~/.claude/skills/newcity/scripts/newcity.py announcement PU2026060800001 
   - `--limit`：只顯示前 N 則。
 - `announcement <NO_PU>`：讀取單則公告內文與附件。
   - `--save <dir>`：把附件下載存到指定目錄。
+  - `--mark-read`：讀完順便把這則標記為已讀（預設不標記，純讀取）。
 
 執行後把腳本輸出原樣轉述給使用者即可，不需重新排版。
 

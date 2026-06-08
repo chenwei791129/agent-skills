@@ -284,7 +284,7 @@ Body: {
 ## 六、點數查詢模組 `APP_PD010`（後續擴充記錄）
 
 「社區點數」沿用同一條 `App/Query` 通用查詢路徑，只是換 `ProID` 與欄位。以下為對正式環境
-（社區 `水蓮山莊`）實測的結論：
+（社區 `範例社區`）實測的結論：
 
 - **ProID**：`APP_PD010`（`ProName` =「點數查詢」，`ProType` = `ViewDetail` 主從）。
 - **資料表**：`ST3_PADD`。
@@ -355,3 +355,16 @@ Head: {
    base64（較重，~3.5MB）；`File/Download?id=<guid>` 直接吐原始檔，`Content-Disposition` 帶真實
    檔名（`filename*=UTF-8''` 形式優先，`filename="..."` 形式為亂碼）。`App/Query` **無法**用
    `NO_PU` 過濾，單則明細靠 client 端比對。
+
+### 標記已讀
+
+| 動作 | 端點 | 說明 |
+|---|---|---|
+| 單則已讀 | `POST App/DataClicked` | header 帶 `ProID`；body `{"pageid":"Head","RequestData":{"NO_COMP","NO_PU","DT_B"}}`。對應 `GetProgramSettings` 裡 `page[Head].ClickSql`：`EXEC SP_UpdAppIconNum '<NO_COMP>','<NO_PU>','<NO_USER>','','1'`，把該則 `YN_APP` 翻成已讀、badge -1。**伺服器端代入 ClickSql 執行，client 不送 SQL。** |
+| 全部已讀 | `GET Data/Get?proid=APP_PA006&key=read` | 觸發 `BTN_READ` 欄位的 Command runsql，依 `NO_COMP + USERID` 把所有未讀一次標記，無 `NO_PU` 參數。 |
+
+讀取狀態存在 `CO1_CRM1WK`（key：`NO_COMP + NO_QU(=NO_PU) + USERID`）。badge 數字由 `Menu/GetProBadges?menuid=APP_PA006` 取得，與未讀清單筆數一致。
+
+> 通用 SQL 入口 `Data/Post`（body `{"Sql":"<加密 base64>",...}`）需要 app 端加密的 `Sql`，明文會被忽略（回空 success）；單則已讀走 `App/DataClicked` 即可，無需碰 `Data/Post`。
+
+另：`App/Get?proid=APP_PA006&pageid=Head&NO_PU=<id>&NO_COMP=<comp>` 可取**單筆**公告（不必抓整份清單），但**不會**標記已讀。
