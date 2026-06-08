@@ -185,6 +185,34 @@ def print_announcements(
         print(f"{unread} {date}  [{category}]  {title}  ({no_pu})")
 
 
+ANN_TEXT2_PLACEHOLDER = "請在此輸入內容..."
+
+
+def print_announcement_detail(
+    row: dict, attachments: list[dict], community: str, resident: str
+) -> None:
+    _header(community, resident)
+    print(f"主旨：{row.get('GN_TITLE', '')}")
+    print(
+        f"日期：{row.get('DT_TRN', '')}    類別：{row.get('SC_ANTP_text', '')}"
+        f"    讀取狀態：{row.get('YN_APP', '')}"
+    )
+    print(f"公告編號：{row.get('NO_PU', '')}")
+    print("-" * 40)
+
+    body = html_to_text(row.get("GN_TEXT1", ""))
+    text2 = (row.get("GN_TEXT2") or "").strip()
+    if text2 and text2 != ANN_TEXT2_PLACEHOLDER:
+        body = f"{body}\n\n{html_to_text(text2)}".strip()
+    print(body or "（無內文）")
+
+    if attachments:
+        print("\n附件：")
+        for att in attachments:
+            saved = f"  → 已存：{att['saved_path']}" if att.get("saved_path") else ""
+            print(f"  - {att['filename']}\n    {att['url']}{saved}")
+
+
 def run_mail(client: NewcityClient, identity: dict, args: argparse.Namespace) -> None:
     rows = client.query(
         MAIL_PRO_ID,
@@ -226,6 +254,34 @@ def run_announcements(
     )
 
 
+ANN_FILE_FIELDS = ("GN_FILE1", "GN_FILE2", "GN_FILE3", "GN_FILE4")
+
+
+def run_announcement(
+    client: NewcityClient, identity: dict, args: argparse.Namespace
+) -> None:
+    # App/Query cannot filter by NO_PU, so fetch the full list (the list rows
+    # already carry the body and attachment GUIDs) and match client-side.
+    rows = client.query(
+        ANN_PRO_ID,
+        ANN_PAGE,
+        {"NO_COMP": identity["NO_COMP"], "YN_APP": "A"},
+        args.page_size,
+    )
+    row = next((r for r in rows if r.get("NO_PU") == args.no_pu), None)
+    if row is None:
+        print(f"查無公告編號 {args.no_pu}", file=sys.stderr)
+        sys.exit(2)
+
+    dest = Path(args.save) if args.save else None
+    attachments = [
+        client.fetch_attachment(row[field], dest)
+        for field in ANN_FILE_FIELDS
+        if row.get(field)
+    ]
+    print_announcement_detail(row, attachments, args.community, identity["NM_CUSTS"])
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="查詢 Newcity 社區 app")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -255,6 +311,12 @@ def parse_args() -> argparse.Namespace:
     )
     ann.add_argument("--page-size", type=int, default=50, help="每頁筆數（預設 50）")
     ann.set_defaults(handler=run_announcements, pro_id=ANN_PRO_ID)
+
+    one = sub.add_parser("announcement", help="讀取單則公告內文與附件")
+    one.add_argument("no_pu", help="公告編號 NO_PU（從 announcements 清單取得）")
+    one.add_argument("--save", default=None, help="把附件下載存到指定目錄")
+    one.add_argument("--page-size", type=int, default=50, help="每頁筆數（預設 50）")
+    one.set_defaults(handler=run_announcement, pro_id=ANN_PRO_ID)
 
     return parser.parse_args()
 
