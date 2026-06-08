@@ -15,8 +15,11 @@ the rows. Run with: uv run newcity.py <subcommand>
 """
 
 import argparse
+import html
+import re
 import signal
 import sys
+from pathlib import Path
 
 import requests
 
@@ -102,6 +105,23 @@ def _to_number(value: object) -> float:
 def _fmt_points(value: float) -> str:
     """Render points without a trailing .0 when they are whole numbers."""
     return str(int(value)) if value == int(value) else str(value)
+
+
+def html_to_text(value: str) -> str:
+    """Render an HtmlView field (GN_TEXT1) as plain text for the terminal.
+
+    Announcement bodies are stored as HTML; convert <br>/<p>/<div> to newlines,
+    drop the remaining tags, unescape entities, and collapse blank-line runs.
+    """
+    if not value:
+        return ""
+    text = re.sub(r"(?i)<\s*br\s*/?>", "\n", value)
+    text = re.sub(r"(?i)</\s*(p|div|li|tr|h[1-6])\s*>", "\n", text)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = html.unescape(text)
+    text = re.sub(r"[ \t]+\n", "\n", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
 
 
 def print_points(rows: list[dict], community: str, resident: str) -> None:
