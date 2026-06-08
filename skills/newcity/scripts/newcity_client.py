@@ -19,8 +19,10 @@ See .env.example for the variable names.
 
 import base64
 import os
+import re
 import secrets
 from pathlib import Path
+from urllib.parse import unquote
 
 import requests
 from dotenv import dotenv_values
@@ -71,6 +73,19 @@ def load_config() -> dict[str, str | None]:
         "password": resolve("NEWCITY_PASSWORD"),
         "bearer": resolve("NEWCITY_BEARER"),
     }
+
+
+def _filename_from_disposition(disposition: str) -> str | None:
+    """Extract the filename from a Content-Disposition header.
+
+    Prefers the RFC 5987 `filename*=UTF-8''...` form (percent-decoded) over the
+    plain `filename="..."` form, which the server fills with mojibake.
+    """
+    star = re.search(r"filename\*=UTF-8''([^;]+)", disposition)
+    if star:
+        return unquote(star.group(1)).strip()
+    plain = re.search(r'filename="([^"]+)"', disposition)
+    return plain.group(1).strip() if plain else None
 
 
 class ApiError(RuntimeError):
@@ -173,3 +188,31 @@ class NewcityClient:
                 break
             page += 1
         return rows
+
+    def fetch_attachment(self, guid: str, dest_dir: Path | None = None) -> dict:
+        """Resolve (and optionally download) an attachment by its file GUID.
+
+        File/Download serves the raw bytes with the real filename in the
+        Content-Disposition header. With dest_dir=None we read only the
+        headers (filename/size) and skip the body; with dest_dir set we stream
+        the bytes to dest_dir/<filename> and return the saved path.
+        """
+        url = f"{BASE_URL}/File/Download"
+        with self.session.get(
+            url, params={"id": guid}, timeout=120, stream=True
+        ) as resp:
+            resp.raise_for_status()
+            filename = (
+                _filename_from_disposition(resp.headers.get("Content-Disposition", ""))
+                or guid
+            )
+            size = resp.headers.get("Content-Length")
+            info = {"guid": guid, "filename": filename, "url": resp.url, "size": size}
+            if dest_dir is not None:
+                dest_dir.mkdir(parents=True, exist_ok=True)
+                path = dest_dir / filename
+                with open(path, "wb") as fh:
+                    for chunk in resp.iter_content(chunk_size=65536):
+                        fh.write(chunk)
+                info["saved_path"] = str(path)
+            return info
