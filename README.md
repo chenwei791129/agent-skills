@@ -50,7 +50,7 @@ gh skill update --all
 | `go-concurrency-patterns` | Go concurrency programming and goroutine patterns |
 | `malware-repo-analysis` | Malware and supply chain attack detection in third-party git repositories using Agent Teams parallel analysis |
 | `ndc-lightscore` | Fetch Taiwan NDC 景氣對策信號 latest score, signal light, and next publish date |
-| `newcity-mail` | Query uncollected/collected mail and parcels from the Newcity community property app (itlife.com.tw / NewcityWebApi) |
+| `newcity` | Query mail/parcels and remaining community points from the Newcity community property app (itlife.com.tw / NewcityWebApi) |
 | `postgres` | Read-only SQL query execution for PostgreSQL |
 | `powershell-style-guide` | PowerShell code style and best practices review |
 | `pre-goal` | Turn a vague task into a well-bounded goal prompt (Outcome, Verification, Constraints, Iteration Policy, Error Handling) before launching /goal |

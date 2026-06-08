@@ -278,3 +278,49 @@ Body: {
 | 30 | GET | `AppSetting/Xaml?name=APP_PA004` | 功能頁專屬 XAML（此功能無，回 false） |
 | 31 | POST | `App/GetDefaultValues` | 查詢條件預設值 |
 | **32** | **POST** | **`App/Query`** | **通用查詢引擎（查未領信件）** |
+
+---
+
+## 六、點數查詢模組 `APP_PD010`（後續擴充記錄）
+
+「社區點數」沿用同一條 `App/Query` 通用查詢路徑，只是換 `ProID` 與欄位。以下為對正式環境
+（社區 `水蓮山莊`）實測的結論：
+
+- **ProID**：`APP_PD010`（`ProName` =「點數查詢」，`ProType` = `ViewDetail` 主從）。
+- **資料表**：`ST3_PADD`。
+- **Head 頁（彙總）**：`DT_B` 年月、`SC_BOOK` 點數使用類別、`QT_FREE` 贈送點數、`QT_PURCH` 購買點數。
+- **Body 頁「贈點有效明細」**：`NO_PO` 點數單號、`SC_CPTY` 點數類別、`DT_B` 有效起日、
+  `DT_E` 有效迄日、`QT_FREE` 單筆點數、**`QT_FREEU` 剩餘點數**。剩餘點數餘額即為 Body 各列
+  `QT_FREEU` 之加總。
+
+### 查詢方式
+
+```
+POST /api/App/Query
+Body: {
+  "proid":"APP_PD010", "pageid":"Body",
+  "RequestData":{"NO_COMP":"...","NO_CUST":"...","NO_HOUSE":"...","NO_ARCH":"...","NO_BUILD":"..."},
+  "size":50, "page":1
+}
+→ result: [{"NO_PO":"PO...","SC_CPTY":"P1","SC_CPTY_text":"批次贈送點數",
+            "DT_B":"2026/06/01","DT_E":"2026/06/30","QT_FREE":"26.00","QT_FREEU":"26.00", ...}]
+```
+
+### ⚠️ 坑：RequestData 五欄位缺一不可
+
+與信件（`APP_PA004` 只需 `NO_CUST` + `LET_STATUS` + `NO_COMP`）不同，點數查詢的
+`RequestData` **必須帶齊 `NO_COMP`、`NO_CUST`、`NO_HOUSE`、`NO_ARCH`、`NO_BUILD` 五個欄位，
+拿掉任一個都會回 0 筆**（實測逐一刪除驗證）。原因：`App/GetDefaultValues`（proid=`APP_PD010`、
+pageid=`Query`）對此模組回 **空物件**、不代為解析這些 Query 預設值，因此必須由 client 自行從
+`User/Token` 的回應補齊（`User/Token` 已一次回傳 `NO_HOUSE`/`NO_ARCH`/`NO_BUILD`/`NO_CUST`）。
+
+> 通則：**不同 `ProID` 模組所需的 RequestData key 欄位不同**，由各自的 `Query` 頁 schema 決定。
+> 擴充新模組時，先看 `GetProgramSettings` 的 `Query` 欄位、再實測 `GetDefaultValues` 是否代解析，
+> 缺的就從 `User/Token` 補齊。伺服器另會回 `*_text` 伴隨欄位（如 `SC_CPTY_text`），顯示時優先採用。
+
+### 相鄰模組（尚未實作，僅記錄）
+
+| ProID | 功能 | 觀察到的關鍵欄位 |
+|---|---|---|
+| `APP_PD012` | 儲值 | `AMT_CLUB` 儲值金額、`QT_PURCH` 購買點數、`DT_TRN` 交易日 |
+| `APP_PD003` | 消費紀錄 | 公設使用紀錄（`NO_BOOK_text` 設施名）、`QT_FREE` 本筆使用、`C_QT_FREE` 累計贈點 |
