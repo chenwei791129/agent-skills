@@ -6,7 +6,9 @@ description: >-
   「社區管理室有沒有東西要領」「幫我查 newcity / itlife 的信件」時使用。
   點數:當使用者想知道「我還有多少社區點數」「剩餘點數」「公設/餐飲點數還剩多少」
   「點數什麼時候過期」時使用。
-  即使使用者沒明講 app 名稱,只要是查「社區/大樓管理室代收的信件包裹」或「社區點數餘額」就適用。
+  公告:當使用者想知道「社區有什麼新公告」「最新公告」「未讀公告」「管委會公告」
+  「公告內容/附件」時使用。
+  即使使用者沒明講 app 名稱,只要是查「社區/大樓管理室代收的信件包裹」「社區點數餘額」或社區公告就適用。
   本 skill 透過 app 的 API 重現登入->選社區->解析住戶->查詢流程,印出結果。
 ---
 
@@ -22,6 +24,8 @@ description: >-
   關鍵詞：未領信件、待領信件、已領信件、有沒有我的包裹。
 - **點數**：查社區剩餘點數餘額、點數有效期。
   關鍵詞：剩餘點數、社區點數、公設點數、點數過期。
+- **公告**：查社區最新公告（預設未讀），讀取單則內文與附件。
+  關鍵詞：最新公告、未讀公告、管委會公告、公告內容、公告附件。
 - 通用關鍵詞：newcity、itlife、社區 app。
 
 ## 執行方式
@@ -37,6 +41,15 @@ uv run ~/.claude/skills/newcity/scripts/newcity.py mail --status 2
 
 # 查社區剩餘點數（總和 + 每筆明細與有效期）
 uv run ~/.claude/skills/newcity/scripts/newcity.py points
+
+# 查未讀公告（預設）
+uv run ~/.claude/skills/newcity/scripts/newcity.py announcements
+
+# 查全部公告、只看前 20 則
+uv run ~/.claude/skills/newcity/scripts/newcity.py announcements --status all --limit 20
+
+# 讀取單則公告內文與附件（NO_PU 來自清單），並把附件存到指定目錄
+uv run ~/.claude/skills/newcity/scripts/newcity.py announcement PU2026060800001 --save ~/Downloads
 ```
 
 子指令與參數：
@@ -45,6 +58,11 @@ uv run ~/.claude/skills/newcity/scripts/newcity.py points
   - `--page-size`：每頁筆數（預設 50，腳本會自動翻頁取完）。
 - `points`：查剩餘點數。印出剩餘點數總和與每筆贈點明細（類別、單筆/剩餘點數、有效起迄日、單號）。
   - `--page-size`：每頁筆數（預設 50）。
+- `announcements`：查公告清單。
+  - `--status`：`unread`=未讀（預設），`all`=全部，`read`=已讀。
+  - `--limit`：只顯示前 N 則。
+- `announcement <NO_PU>`：讀取單則公告內文與附件。
+  - `--save <dir>`：把附件下載存到指定目錄。
 
 執行後把腳本輸出原樣轉述給使用者即可，不需重新排版。
 

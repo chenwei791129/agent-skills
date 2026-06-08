@@ -324,3 +324,34 @@ pageid=`Query`）對此模組回 **空物件**、不代為解析這些 Query 預
 |---|---|---|
 | `APP_PD012` | 儲值 | `AMT_CLUB` 儲值金額、`QT_PURCH` 購買點數、`DT_TRN` 交易日 |
 | `APP_PD003` | 消費紀錄 | 公設使用紀錄（`NO_BOOK_text` 設施名）、`QT_FREE` 本筆使用、`C_QT_FREE` 累計贈點 |
+
+---
+
+## 七、最新公告模組 `APP_PA006`
+
+公告資料表 `CO1_PU`，查詢走 `App/Query`（proid=`APP_PA006`、pageid=`Head`）。列資料即含內文
+（`GN_TEXT1` 為 HtmlView、選填 `GN_TEXT2`）與附件 GUID（`GN_FILE1`~`GN_FILE4`），單則明細不另
+打 API，靠 client 端以 `NO_PU` 比對。常用欄位：`DT_TRN` 公告日、`SC_ANTP_text` 類別、`GN_TITLE`
+主旨、`YN_APP`（清單顯示為「未讀/已讀」）。
+
+```
+POST /api/App/Query
+Head: {
+  "proid":"APP_PA006", "pageid":"Head",
+  "RequestData":{"NO_COMP":"...","YN_APP":"N"},
+  "size":50, "page":1
+}
+```
+
+### ⚠️ 三個坑
+
+1. **community 層級資料需 `Bearer=info`**：`User/Token` 回應的 `info`（約 512 字元的加密字串）是
+   社區情境 session 憑證。沿用登入用的隨機 device `Bearer` 查公告會回 **0 筆**，換成 `info` 才有
+   資料（`Menu/*` 系列同此要求）。mail/points 在 `info` 下仍正常，故 client 一律在 `User/Token`
+   後採用 `info`。
+2. **`YN_APP` 必填**（`IsAllowBlank=False`）：`A`=全部、`N`=未讀（數量等於 app badge）、`Y`=已讀；
+   不帶此欄回 0 筆。
+3. **附件**：列資料含 `GN_FILE1`~`GN_FILE4` 的檔案 GUID。`File/Get?id=<guid>` 回 metadata +
+   base64（較重，~3.5MB）；`File/Download?id=<guid>` 直接吐原始檔，`Content-Disposition` 帶真實
+   檔名（`filename*=UTF-8''` 形式優先，`filename="..."` 形式為亂碼）。`App/Query` **無法**用
+   `NO_PU` 過濾，單則明細靠 client 端比對。
