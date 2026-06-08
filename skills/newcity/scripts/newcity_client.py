@@ -116,19 +116,23 @@ class NewcityClient:
         return first["NO_COMP"], first.get("NM_CMPS", "")
 
     def resolve_resident(self, userid: str, no_comp: str) -> dict[str, str]:
-        """Return the user's full identity in the community by exchanging userid+company.
+        """Return the user's full identity, and switch to the community session token.
 
-        Different feature modules key their queries on different identity
-        fields: mail (APP_PA004) only needs NO_CUST, but points (APP_PD010)
-        requires NO_CUST + NO_HOUSE + NO_ARCH + NO_BUILD all together — drop any
-        and the query returns zero rows. The server's GetDefaultValues does not
-        resolve these for the points module, so the client must supply them.
-        We therefore return the whole identity and let each caller pick.
+        User/Token returns an encrypted `info` value: the community-scoped
+        session credential. Resident-scoped queries (mail, points) work under
+        the initial device Bearer, but community-scoped queries (announcements)
+        require the Bearer to be switched to this `info` value — and mail/points
+        keep working under it — so we always adopt it for subsequent requests,
+        mirroring the app. Different feature modules also key their queries on
+        different identity fields, so we return the whole identity.
         """
         data = self._get("User/Token", {"userid": userid, "comp": no_comp})
         result = data.get("result") or {}
         if not data.get("success") or not result.get("NO_CUST"):
             raise ApiError("Failed to resolve resident id (NO_CUST)")
+        info = data.get("info")
+        if info:
+            self.session.headers["Bearer"] = info
         return {
             "NO_COMP": result.get("NO_COMP", no_comp),
             "NO_CUST": result["NO_CUST"],
@@ -136,6 +140,7 @@ class NewcityClient:
             "NO_HOUSE": result.get("NO_HOUSE", ""),
             "NO_ARCH": result.get("NO_ARCH", ""),
             "NO_BUILD": result.get("NO_BUILD", ""),
+            "NO_USER": result.get("NO_USER", ""),
         }
 
     def query(
