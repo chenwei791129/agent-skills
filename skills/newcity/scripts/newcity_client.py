@@ -189,6 +189,22 @@ class NewcityClient:
             page += 1
         return rows
 
+    def data_clicked(self, pageid: str, request_data: dict) -> None:
+        """Replay the app's row-tap so the server marks that row read.
+
+        Each module's metadata defines a per-page ClickSql the app fires on open
+        via App/DataClicked (for announcements it runs SP_UpdAppIconNum, which
+        flips YN_APP to read and decrements the badge). The ProID header set at
+        construction selects the module; the server substitutes RequestData into
+        the ClickSql and runs it, so no SQL crosses the wire. RequestData carries
+        the row's key fields (announcements: NO_COMP, NO_PU, DT_B).
+        """
+        data = self._post(
+            "App/DataClicked", {"pageid": pageid, "RequestData": request_data}
+        )
+        if not data.get("success"):
+            raise ApiError("App/DataClicked failed")
+
     def fetch_attachment(self, guid: str, dest_dir: Path | None = None) -> dict:
         """Resolve (and optionally download) an attachment by its file GUID.
 

@@ -255,6 +255,9 @@ def run_announcements(
 
 
 ANN_FILE_FIELDS = ("GN_FILE1", "GN_FILE2", "GN_FILE3", "GN_FILE4")
+# Row key fields the app sends to App/DataClicked to mark a single announcement
+# read (mirrors the captured request body's RequestData).
+ANN_CLICK_FIELDS = ("NO_COMP", "NO_PU", "DT_B")
 
 
 def run_announcement(
@@ -280,6 +283,15 @@ def run_announcement(
         if row.get(field)
     ]
     print_announcement_detail(row, attachments, args.community, identity["NM_CUSTS"])
+
+    if args.mark_read:
+        was_unread = row.get("YN_APP") == "未讀"
+        click_data = {"NO_COMP": identity["NO_COMP"]}
+        click_data.update(
+            {f: row.get(f, "") for f in ANN_CLICK_FIELDS if f != "NO_COMP"}
+        )
+        client.data_clicked(ANN_PAGE, click_data)
+        print("\n（已標記為已讀）" if was_unread else "\n（本則原本就是已讀）")
 
 
 def parse_args() -> argparse.Namespace:
@@ -315,6 +327,11 @@ def parse_args() -> argparse.Namespace:
     one = sub.add_parser("announcement", help="讀取單則公告內文與附件")
     one.add_argument("no_pu", help="公告編號 NO_PU（從 announcements 清單取得）")
     one.add_argument("--save", default=None, help="把附件下載存到指定目錄")
+    one.add_argument(
+        "--mark-read",
+        action="store_true",
+        help="讀完順便把這則標記為已讀（預設不標記，純讀取）",
+    )
     one.add_argument("--page-size", type=int, default=50, help="每頁筆數（預設 50）")
     one.set_defaults(handler=run_announcement, pro_id=ANN_PRO_ID)
 
