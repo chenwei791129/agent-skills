@@ -56,6 +56,7 @@ gh skill update --all
 | `powershell-style-guide` | PowerShell code style and best practices review |
 | `pre-goal` | Turn a vague task into a well-bounded goal prompt (Outcome, Verification, Constraints, Iteration Policy, Error Handling) before launching /goal |
 | `prompt-engineering` | LLM prompt optimization and design patterns |
+| `sap-leave-request` | Submit a full-day leave / time-off request (incl. sick leave with proof attachment) in SAP SuccessFactors via the agent-browser CLI |
 | `shell-style-guide` | Shell/Bash code style review guide |
 | `slack-notify` | Send Slack notifications via Incoming Webhook with mrkdwn support |
 | `styling` | CSS and Tailwind styling best practices |
