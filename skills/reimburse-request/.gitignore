@@ -1,0 +1,6 @@
+# Never commit real credentials.
+.env
+
+# Python bytecode cache (created when the login script is compiled/run).
+__pycache__/
+*.pyc
