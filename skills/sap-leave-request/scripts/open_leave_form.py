@@ -60,7 +60,7 @@ def ab(*args: str, check: bool = False) -> str:
         text=True,
     )
     if check and result.returncode != 0:
-        fail(f"agent-browser {' '.join(args)} 失敗: {result.stderr.strip()}")
+        fail(f"agent-browser {' '.join(args)} failed: {result.stderr.strip()}")
     return result.stdout.strip()
 
 
@@ -95,7 +95,7 @@ def center_of(ref: str) -> tuple[int, int]:
         for key, value in re.findall(r"(x|y|width|height):\s*([\d.]+)", box)
     }
     if len(coords) < 4:
-        fail(f"無法取得 {ref} 的座標: {box}")
+        fail(f"could not read the box coordinates of {ref}: {box}")
     return (
         int(coords["x"] + coords["width"] / 2),
         int(coords["y"] + coords["height"] / 2),
@@ -113,17 +113,17 @@ def click_at(x: int, y: int) -> None:
 
 def load_credentials(env_path: Path) -> tuple[str, str, str]:
     if not env_path.is_file():
-        fail(f"找不到 .env: {env_path}")
+        fail(f".env not found: {env_path}")
     values = dotenv_values(env_path)
     username = values.get("SAP_USERNAME")
     password = values.get("SAP_PASSWORD")
     url = values.get("SAP_URL")
     if not username:
-        fail("SAP_USERNAME 未設定")
+        fail("SAP_USERNAME is not set")
     if not password:
-        fail("SAP_PASSWORD 未設定")
+        fail("SAP_PASSWORD is not set")
     if not url:
-        fail("SAP_URL 未設定 (例: https://<host>/sf/home?bplte_company=<company>)")
+        fail("SAP_URL is not set (e.g. https://<host>/sf/home?bplte_company=<company>)")
     return username, password, url
 
 
@@ -143,7 +143,9 @@ def ensure_logged_in(username: str, password: str, url: str) -> None:
         pass_ref = find_ref("textbox", "密碼", snap)
         login_ref = find_ref("button", "登入", snap)
         if not pass_ref or not login_ref:
-            fail("登入頁缺少密碼或登入欄位,頁面可能改版")
+            fail(
+                "login page is missing the password or login field; it may have changed"
+            )
         ab("fill", user_ref, username, check=True)
         ab("fill", pass_ref, password, check=True)
         ab("click", login_ref, check=True)
@@ -152,30 +154,34 @@ def ensure_logged_in(username: str, password: str, url: str) -> None:
 
     if marker not in ab("get", "url"):
         fail(
-            "登入後仍未進入首頁。常見原因:.env 帳號沒用單引號,網域反斜線被吃掉。"
-            " 請確認 SAP_USERNAME='DOMAIN\\\\your.account' 格式。"
+            "still not on the home page after login. Common cause: the .env"
+            " username was not single-quoted, so the domain backslash was eaten."
+            " Check the SAP_USERNAME='DOMAIN\\\\your.account' format."
         )
 
 
 def open_leave_form() -> None:
     button = find_ref("button", "要求休假")
     if not button:
-        fail("首頁找不到「要求休假」按鈕")
+        fail("could not find the 要求休假 (request-leave) button on the home page")
     click_at(*center_of(button))
     time.sleep(3)
     ab("wait", "--load", "networkidle")
 
     if not find_ref("combobox", "時間類型"):
-        fail("點擊後未出現請假表單(找不到「時間類型」欄位)")
+        fail("the leave form did not appear after the click (no 時間類型 field found)")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="開啟 SAP SuccessFactors 請假表單")
+    parser = argparse.ArgumentParser(
+        description="Open the SAP SuccessFactors leave-request form"
+    )
     parser.add_argument(
         "--env",
         type=Path,
         default=Path(".env"),
-        help="存放 SAP_USERNAME / SAP_PASSWORD 的 .env 路徑 (預設: ./.env)",
+        help="path to the .env holding SAP_USERNAME / SAP_PASSWORD / SAP_URL"
+        " (default: ./.env)",
     )
     args = parser.parse_args()
 
@@ -183,7 +189,10 @@ def main() -> None:
     ensure_logged_in(username, password, url)
     open_leave_form()
 
-    print("READY: 已登入並開啟請假表單。請由 agent 接手選擇假別、填入日期並提交。")
+    print(
+        "READY: logged in and the leave form is open. The agent takes over to"
+        " pick the leave type, fill the dates, and submit."
+    )
 
 
 if __name__ == "__main__":

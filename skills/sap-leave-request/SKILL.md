@@ -12,28 +12,40 @@ description: >-
   fills the dates, and submits.
 ---
 
-# SAP SuccessFactors 請假申請
+# SAP SuccessFactors Leave Request
 
-用 `agent-browser` CLI 在 SAP SuccessFactors 自動提交全日請假申請。整個流程的可
-行性與每一個指令都經過實測驗證。
+Submit a full-day leave request in SAP SuccessFactors via the `agent-browser`
+CLI. Every step below was verified end-to-end against the live system.
 
-## 適用範圍 (v1)
+Note: the SAP UI is localized, so element labels in snapshots appear in Chinese
+(e.g. `時間類型` = leave type, `開始日期` = start date, `提交` = submit). Those
+quoted strings are literal UI text you must match — keep them as-is.
 
-- **只處理全日請假**(指定開始日期、結束日期)。半日假 / 指定時段尚未支援 —
-  若使用者要求半日假,明確告知此版本不支援,不要猜測填法。
-- **行為:填完驗證通過後直接自動提交**,不另外停下來等使用者二次確認。
-  唯一例外:使用者明確說「先別送出」「只填好不要提交」時,填到送出前停住。
-- **支援上傳證明附件**。病假類假別(普通傷病假、公傷病假等)通常需附醫療證明
-  或相關文件;表單本身對所有假別都有附件欄位。使用者請病假時,主動詢問是否要附
-  證明檔案,有就在送出前上傳(見步驟 3.5)。
+## Scope (v1)
 
-## 前置需求
+- **Full-day leave only** (a start date and an end date). Half-day / specific
+  time slots are not supported yet — if the user asks for a half-day, tell them
+  plainly that this version doesn't support it; do not guess how to fill it.
+- **Behavior: auto-submit once validation passes.** Do not stop for a second
+  confirmation. The only exception is when the user explicitly says "don't
+  submit" / "just fill it in" — in that case stop right before submitting.
+- **Proof attachments are supported.** Sick-leave types (普通傷病假, 公傷病假,
+  etc.) usually need a medical certificate or supporting document; the form
+  itself exposes an attachment field for every leave type. When the user
+  requests sick leave, proactively ask whether they want to attach proof, and
+  if so upload it before submitting (see Step 3.5).
 
-1. **`agent-browser` 已安裝**(`which agent-browser`,實測 v0.28.0)、**`uv` 已安裝**
-   (登入腳本以 `uv run` 執行,依賴 `python-dotenv` 由 PEP 723 內嵌自動安裝)。
-2. **`.env` 內含設定與帳密**。SAP 登入帳號通常帶網域反斜線(`DOMAIN\account`),
-   因此 `.env` 的帳號**必須用單引號包住**,否則 `source` 會把 `\` 當跳脫字元吃掉。
-   首頁 URL 因組織而異(SAP 資料中心主機 + 公司代碼參數),所以也放在 `.env`:
+## Prerequisites
+
+1. **`agent-browser` installed** (`which agent-browser`, verified on v0.28.0)
+   and **`uv` installed** (the login script runs via `uv run`; its
+   `python-dotenv` dependency is auto-installed from the PEP 723 inline
+   metadata).
+2. **A `.env` with config + credentials.** The SAP login account usually
+   carries a domain backslash (`DOMAIN\account`), so the username **must be
+   wrapped in single quotes**, otherwise `source` eats the `\` as an escape
+   character. The home URL is org-specific (SAP datacenter host + company code),
+   so it lives in `.env` too:
 
    ```
    SAP_USERNAME='DOMAIN\your.account'
@@ -41,154 +53,178 @@ description: >-
    SAP_URL='https://<your-sf-host>/sf/home?bplte_company=<your-company>'
    ```
 
-   `SAP_URL` 填你公司的 SuccessFactors 首頁網址(含公司代碼參數),登入成功後瀏覽器
-   應停在這個位址。可直接複製 skill 目錄的 `.env.example` 為 `.env` 再填入。找 `.env`
-   的順序:目前工作目錄 → 使用者明確指定的路徑。找不到就請使用者建立,不要把帳密或
-   公司網址寫進指令明文或要使用者貼到對話裡。
+   `SAP_URL` is your company's SuccessFactors home URL (including the company
+   code parameter); after a successful login the browser should land on it.
+   Copy the skill's `.env.example` to `.env` and fill it in. Lookup order for
+   `.env`: current working directory → a path the user specifies explicitly. If
+   it's missing, ask the user to create it — never write credentials or the
+   company URL into a command line in plain text, and never ask the user to
+   paste them into the chat.
+3. Login needs **only username/password, no MFA**, so it can be fully automated.
 
-3. 登入**只需要帳密、沒有 MFA**,所以可全自動。
+## Security principles
 
-## 安全原則
+- The login script passes credentials only as subprocess arguments; **never**
+  let them appear in plain text in any command string you print or in the chat.
+- These are real HR records. After submitting, always report a clear result
+  (success/failure, leave type, dates, day count) — don't be vague.
 
-- 帳密一律用 shell 變數展開(`"$SAP_USERNAME"`),**絕不**讓明文出現在你輸出的
-  指令字串或對話中。載入方式固定為 `set -a; source <.env路徑>; set +a`。
-- 提交的是真實人資記錄。送出後務必回報一個明確的結果(成功/失敗、假別、日期、
-  天數),不要含糊帶過。
+## Full workflow
 
-## 完整流程
+Login and opening the form is a fixed sequence handled by
+`scripts/open_leave_form.py`; you (the agent) then take over to pick the leave
+type, fill dates, and submit. Once you take over, follow agent-browser's core
+loop: **`snapshot` to get `@eN` refs → act → re-snapshot after the page
+changes**. Refs are renumbered on every snapshot and go stale as soon as the
+page changes, so always re-snapshot right before acting.
 
-登入與開啟表單這段是固定流程,交給腳本 `scripts/open_leave_form.py`;之後選假別、
-填日期、送出由你(agent)接手。接手後遵循 agent-browser 的核心循環:**snapshot 取得
-`@eN` ref → 操作 → 頁面變動後重新 snapshot**。ref 每次 snapshot 都重新編號,頁面一
-變就失效,動作前務必重新 snapshot。
-
-### 步驟 1 — 執行腳本:登入並開啟表單
+### Step 1 — Run the script: log in and open the form
 
 ```bash
-uv run <skill目錄>/scripts/open_leave_form.py --env <.env路徑>
+uv run <skill-dir>/scripts/open_leave_form.py --env <.env-path>
 ```
 
-`--env` 預設為 `./.env`,通常省略即可。腳本會:
+`--env` defaults to `./.env` and can usually be omitted. The script:
 
-1. 用 `python-dotenv` 載入帳密(讀字面值,單引號內的反斜線天然保留)。
-2. 檢查是否已在首頁(以 `SAP_URL` 的主機與路徑判斷),沒登入才開瀏覽器(headed)
-   並在公司 SSO / ADFS 登入頁自動填帳密。
-3. 用座標點擊繞過 UI5 圖示遮擋,開啟「要求休假」表單。
+1. Loads credentials with `python-dotenv` (literal values, so the backslash
+   inside single quotes is preserved).
+2. Checks whether it's already on the home page (matched by `SAP_URL`'s host +
+   path); only when not logged in does it open the browser (headed) and fill the
+   company SSO / ADFS login page automatically.
+3. Uses a coordinate click to bypass the UI5 icon overlay and open the
+   `要求休假` (request-leave) form.
 
-成功時印出 `READY: ...`、退出碼 0,瀏覽器停在已開啟的表單上。失敗會印 `ERROR: ...`
-並以非 0 退出 — 直接把錯誤訊息回報使用者(常見:`.env` 找不到、帳號未用單引號導致
-反斜線被吃掉)。腳本印 READY 後,snapshot 確認欄位再接手:
+On success it prints `READY: ...` and exits 0, leaving the browser on the open
+form. On failure it prints `ERROR: ...` and exits non-zero — relay that message
+straight to the user (common causes: `.env` not found, or the username not
+single-quoted so the backslash was eaten). After `READY`, snapshot to confirm
+the fields before taking over:
 
 ```bash
 agent-browser snapshot -i
-# 預期看到 combobox "時間類型"、textbox "開始日期"、textbox "結束日期"、button "提交" 等
+# Expect: combobox "時間類型", textbox "開始日期", textbox "結束日期", button "提交", etc.
 ```
 
-### 步驟 2 — 選擇假別(時間類型)
+### Step 2 — Pick the leave type (時間類型)
 
-這是 UI5 combobox,一般 click 不會展開,但 **type-ahead 可靠**:`fill` 完整假別
-名稱再按 Enter:
+This is a UI5 combobox; a plain click won't expand it, but **type-ahead is
+reliable**: `fill` the full leave-type name, then press Enter:
 
 ```bash
-agent-browser fill '<時間類型ref>' "Personal Leave 事假"
+agent-browser fill '<時間類型-ref>' "Personal Leave 事假"
 agent-browser press Enter
-agent-browser snapshot -i        # 確認 combobox 值已變
+agent-browser snapshot -i        # confirm the combobox value changed
 ```
 
-假別名稱必須與系統選項**完全一致**(含中英文)。完整清單見
-`references/leave-types.md`。把使用者的口語(如「特休」「事假」)對應到正式名稱;
-對應不確定時,先按 F4 展開列出實際選項再決定:
+The leave-type name must match the system option **exactly** (Chinese and
+English included). See the full list in `references/leave-types.md`. Map the
+user's colloquial term (e.g. "特休", "annual leave") to the official name; when
+unsure, press F4 to expand and list the actual options first:
 
 ```bash
-agent-browser focus '<時間類型ref>'
+agent-browser focus '<時間類型-ref>'
 agent-browser press F4
-agent-browser snapshot           # 列出所有 option
+agent-browser snapshot           # lists every option
 ```
 
-預設假別是「Annual Leave 公司特休假」;若使用者要的就是特休,可略過本步驟。
+The default type is `Annual Leave 公司特休假`; if that's what the user wants,
+you can skip this step.
 
-### 步驟 3 — 填入日期
+### Step 3 — Fill the dates
 
-開始 / 結束日期是文字框,接受 `YYYY/M/D` 格式(會顯示成「2026 年 6 月 22 日」)。
-先把使用者的相對日期(「下週一」「明天」)依今天日期換算成絕對日期。
+Start / end dates are text boxes that accept the `YYYY/M/D` format (rendered as
+`2026 年 6 月 22 日`). First convert the user's relative dates ("next Monday",
+"tomorrow") into absolute dates based on today.
 
 ```bash
-agent-browser fill '<開始日期ref>' "2026/6/22"
-agent-browser fill '<結束日期ref>' "2026/6/22"
-agent-browser press Tab          # 觸發重算
+agent-browser fill '<start-date-ref>' "2026/6/22"
+agent-browser fill '<end-date-ref>' "2026/6/22"
+agent-browser press Tab          # triggers recalculation
 sleep 2
 agent-browser snapshot -i
 ```
 
-### 步驟 3.5 — 上傳證明附件(病假等需要時)
+### Step 3.5 — Upload a proof attachment (when needed, e.g. sick leave)
 
-病假類假別常需附證明。表單的附件欄位背後是一個隱藏的 `<input type="file">`,直接
-對它 `upload` 即可,**不必去點「Attachment 上傳」按鈕觸發原生檔案對話框**(那個對話
-框 agent-browser 無法操作)。檔案路徑要用**絕對路徑**:
+Sick-leave types often need proof. Behind the attachment field is a hidden
+`<input type="file">`; `upload` to it directly — **do not click the
+`Attachment 上傳` button**, which triggers the OS-native file dialog that
+agent-browser cannot operate. Use an **absolute path** for the file:
 
 ```bash
-agent-browser upload 'input[type=file]' "/絕對/路徑/proof.pdf"
+agent-browser upload 'input[type=file]' "/absolute/path/proof.pdf"
 sleep 2
-agent-browser snapshot -i        # 確認附件清單已出現檔名
+agent-browser snapshot -i        # confirm the filename appears in the list
 ```
 
-上傳成功後,snapshot 的附件 `list` 會帶出檔名、上傳日期與檔案大小(例如
-`list "proof.pdf上傳日期: ... 檔案大小: 41287 位元組刪除"`),據此確認上傳成功。
-附件在後續填日期重算後仍會保留。
+On success the attachment `list` in the snapshot shows the filename, upload
+date, and file size (e.g.
+`list "proof.pdf上傳日期: ... 檔案大小: 41287 位元組刪除"`); use that to confirm
+the upload. The attachment persists through the later date recalculation.
 
-注意:
+Notes:
 
-- **檔案型別不限**:file input 的 `accept` 為空,前端不限副檔名。PDF / JPG / PNG
-  均實測可上傳;其他常見格式(如 JPEG)同理。
-- **一次只能掛一個附件**:上傳成功後該 file input 會從 DOM 移除
-  (`input[type=file]` 數量歸 0)。要換檔案得先刪除現有附件 —— 點附件列的「刪除」
-  會跳出「刪除檔案」確認框,按「確定」後 input 才重新出現,才能再上傳。
-- 使用者請病假卻沒提供檔案路徑時,先問要不要附證明,不要憑空送出。
-- 上傳與選假別、填日期的先後順序不拘;在送出前完成即可。
+- **No file-type restriction**: the file input's `accept` is empty, so the
+  front end doesn't restrict extensions. PDF / JPG / PNG were all verified;
+  other common formats behave the same.
+- **Only one attachment at a time**: after a successful upload the file input is
+  removed from the DOM (`input[type=file]` count drops to 0). To swap files,
+  delete the current attachment first — clicking `刪除` (delete) in the
+  attachment row pops a `刪除檔案` confirmation dialog; press `確定` (confirm)
+  and the input reappears so you can upload again.
+- If the user requests sick leave but gives no file path, ask whether to attach
+  proof first — don't submit blindly.
+- Upload can happen in any order relative to picking the type and filling
+  dates; just finish it before submitting.
 
-### 步驟 4 — 驗證後提交
+### Step 4 — Validate, then submit
 
-填完後 snapshot,檢查兩件事:
+After filling, snapshot and check two things:
 
-1. **「正在要求」> 0 天**。若是「0 天」,代表所選日期不含工作日(碰到週末或公司
-   假日),或頂部出現紅字「您要求的休假必須至少包括一個工作日」。**這種情況不要
-   提交** — 回報使用者哪幾天無效,請對方改日期。
-2. **「提交」按鈕未被 disabled**。日期有效後才會啟用。
+1. **`正在要求` (requesting) > 0 days.** If it's `0 天`, the chosen dates
+   contain no working day (a weekend or a company holiday), or a red error
+   appears at the top ("您要求的休假必須至少包括一個工作日"). **Do not submit in
+   this case** — report which days are invalid and ask the user to change them.
+2. **The `提交` (submit) button is not disabled.** It only enables once the
+   dates are valid.
 
-兩項都通過,才點提交:
+Only when both pass, click submit:
 
 ```bash
-agent-browser snapshot -i        # 取得最新「提交」ref,並讀「正在要求」天數
-agent-browser click '<提交ref>'
+agent-browser snapshot -i        # get the latest 提交 ref and read the 正在要求 day count
+agent-browser click '<提交-ref>'
 sleep 3
 agent-browser wait --load networkidle
 agent-browser snapshot -i
 ```
 
-送出後截圖留存並確認結果:
+Capture a screenshot for the record and confirm the result:
 
 ```bash
 agent-browser screenshot /tmp/sap_leave_result.png
 ```
 
-向使用者回報:假別、起訖日期、天數、送出結果。若出現任何錯誤訊息(紅字 note /
-訊息列),原文回報,不要當成功。
+Report back to the user: leave type, start/end dates, day count, and the
+submission result. If any error message appears (a red note / message strip),
+relay it verbatim — do not treat it as success.
 
-## 取消 / 中止
+## Cancel / abort
 
-要放棄填到一半的表單,點對話框的「取消」按鈕即可(實測不會跳二次確認框)。
+To abandon a half-filled form, click the `取消` (cancel) button in the dialog
+(verified: no second confirmation appears).
 
-## 常見錯誤對照
+## Common error reference
 
-| 症狀 | 原因 | 處理 |
+| Symptom | Cause | Fix |
 |------|------|------|
-| `Element is covered by <ui5-icon>` | 「要求休假」鈕被圖示蓋住 | 改用座標點擊(步驟 3) |
-| 登入後仍停 SSO 登入頁,帳號缺反斜線 | `.env` 沒用單引號,`\` 被吃掉 | 帳號改成 `'DOMAIN\your.account'` |
-| 「正在要求 0 天」/ 紅字要求工作日 | 日期落在週末或公司假日 | 換有效工作日,勿提交 |
-| 時間類型 combobox 點了不展開 | UI5 自訂元件 | 用 `fill`+Enter(type-ahead)或 F4 展開 |
-| ref 操作報找不到元素 | 頁面變動後 ref 失效 | 動作前重新 `snapshot -i` |
-| 點「上傳」按鈕跳出原生檔案對話框卡住 | agent-browser 無法操作原生對話框 | 改用 `upload 'input[type=file]' <絕對路徑>`(步驟 3.5) |
+| `Element is covered by <ui5-icon>` | The `要求休假` button is covered by an icon | Use a coordinate click (Step 1 handles this) |
+| Still on the SSO login page after login; username missing the backslash | `.env` not single-quoted, so `\` was eaten | Change the account to `'DOMAIN\your.account'` |
+| `正在要求 0 天` / red "needs a working day" | Dates fall on a weekend or company holiday | Use valid working days; do not submit |
+| 時間類型 combobox won't expand on click | UI5 custom element | Use `fill`+Enter (type-ahead) or F4 to expand |
+| A ref action reports element not found | Ref went stale after the page changed | Re-run `snapshot -i` before acting |
+| Clicking the upload button opens a stuck native file dialog | agent-browser can't operate native dialogs | Use `upload 'input[type=file]' <absolute-path>` (Step 3.5) |
 
-## 半日 / 指定時段
+## Half-day / specific time slots
 
-v1 不支援。使用者要求時,明確告知並停手,不要臆測時段欄位填法。
+Not supported in v1. When the user asks, say so plainly and stop — do not guess
+how to fill the time-slot fields.
