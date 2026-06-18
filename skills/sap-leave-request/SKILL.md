@@ -223,8 +223,3 @@ To abandon a half-filled form, click the `取消` (cancel) button in the dialog
 | 時間類型 combobox won't expand on click | UI5 custom element | Use `fill`+Enter (type-ahead) or F4 to expand |
 | A ref action reports element not found | Ref went stale after the page changed | Re-run `snapshot -i` before acting |
 | Clicking the upload button opens a stuck native file dialog | agent-browser can't operate native dialogs | Use `upload 'input[type=file]' <absolute-path>` (Step 3.5) |
-
-## Half-day / specific time slots
-
-Not supported in v1. When the user asks, say so plainly and stop — do not guess
-how to fill the time-slot fields.
