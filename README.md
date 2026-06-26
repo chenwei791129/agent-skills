@@ -1,6 +1,6 @@
 # agent-skills
 
-Shared [Claude Code](https://claude.com/claude-code) skills and agent configuration.
+Shared agent skills for [Claude Code](https://claude.com/claude-code) and the [Hermes Agent](https://github.com/nousresearch/hermes-agent).
 
 ## Install
 
@@ -49,6 +49,7 @@ gh skill update --all
 | `glab-cli` | GitLab CLI repository and CI/CD management |
 | `go-concurrency-patterns` | Go concurrency programming and goroutine patterns |
 | `grafana` | Operate a self-hosted Grafana from the terminal via the gcx CLI — dashboards, datasource queries (PromQL/LogQL/TraceQL), alerts, and dashboards-as-code |
+| `grilling` | Relentlessly stress-test a plan or design one question at a time before implementation |
 | `malware-repo-analysis` | Malware and supply chain attack detection in third-party git repositories using Agent Teams parallel analysis |
 | `ndc-lightscore` | Fetch Taiwan NDC 景氣對策信號 latest score, historical scores, red-light streaks, and next publish date |
 | `newcity` | Query mail/parcels, community points, and announcements (with attachments) from the Newcity community property app (itlife.com.tw / NewcityWebApi) |
@@ -63,3 +64,34 @@ gh skill update --all
 | `styling` | CSS and Tailwind styling best practices |
 | `tw-trading-agents` | Multi-agent Taiwan-stock investment research using the TradingAgents methodology and FinMind data |
 | `youtube-transcribe` | Transcribe a YouTube video or local audio/video file into text/SRT/JSON locally (mlx-whisper on Apple Silicon, faster-whisper elsewhere) |
+
+## Hermes Skills
+
+Skills under `hermes-skills/` target the [Hermes Agent](https://github.com/nousresearch/hermes-agent) and are installed with `hermes skills install` (not `gh skill`). Hermes resolves a skill by its full repository path, so the `hermes-skills/` location is addressed directly in the identifier.
+
+### Install a Hermes Skill
+
+Replace `<skill-name>` with the skill directory name under `hermes-skills/` (e.g. `brainstorming`):
+
+```bash
+hermes skills install chenwei791129/agent-skills/hermes-skills/<skill-name>
+```
+
+Example:
+
+```bash
+hermes skills install chenwei791129/agent-skills/hermes-skills/brainstorming
+```
+
+Alternatively, register this repository as a custom tap pointing at `hermes-skills/`, then install by short name:
+
+```bash
+hermes skills tap add chenwei791129/agent-skills --path hermes-skills/
+hermes skills install brainstorming
+```
+
+### Available Hermes Skills
+
+| Skill | Description |
+|-------|-------------|
+| `brainstorming` | Turn rough ideas into approved design specs before implementation, then hand off to Hermes writing-plans |
