@@ -2,6 +2,17 @@
 
 Shared [Claude Code](https://claude.com/claude-code) skills and agent configuration.
 
+## License and Attribution
+
+Some skills are adapted from third-party skill repositories. The adapted skill files include source notes, and upstream MIT license notices are preserved in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Current adapted sources:
+
+| Skill | Source | Upstream license | Notes |
+|-------|--------|------------------|-------|
+| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | MIT | Adapted for Hermes Agent; handoff changed to the installed `writing-plans` skill. |
+| `grilling` | [`mattpocock/skills`](https://github.com/mattpocock/skills) | MIT | Adapted for Hermes Agent with concise decision-stress-test output. |
+
 ## Install
 
 Requires [GitHub CLI](https://cli.github.com/) `2.90+` with the `skill` subcommand.
@@ -39,6 +50,7 @@ gh skill update --all
 | Skill | Description |
 |-------|-------------|
 | `acli-jira` | Jira CLI operations and JQL queries |
+| `brainstorming` | Turn rough ideas into approved designs before implementation; adapted from obra/superpowers |
 | `buffett-investment-strategy` | Warren Buffett's investment analysis framework from 60 years of Berkshire Hathaway letters and annual meetings |
 | `chrome-devtools` | Launch Chrome with remote debugging for DevTools MCP integration |
 | `deep-research` | Deep multi-step web research using Agent Teams for parallel, coordinated investigation |
@@ -49,6 +61,7 @@ gh skill update --all
 | `glab-cli` | GitLab CLI repository and CI/CD management |
 | `go-concurrency-patterns` | Go concurrency programming and goroutine patterns |
 | `grafana` | Operate a self-hosted Grafana from the terminal via the gcx CLI — dashboards, datasource queries (PromQL/LogQL/TraceQL), alerts, and dashboards-as-code |
+| `grilling` | Stress-test a plan or design one decision at a time; adapted from mattpocock/skills |
 | `malware-repo-analysis` | Malware and supply chain attack detection in third-party git repositories using Agent Teams parallel analysis |
 | `ndc-lightscore` | Fetch Taiwan NDC 景氣對策信號 latest score, historical scores, red-light streaks, and next publish date |
 | `newcity` | Query mail/parcels, community points, and announcements (with attachments) from the Newcity community property app (itlife.com.tw / NewcityWebApi) |
