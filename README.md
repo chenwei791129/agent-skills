@@ -2,6 +2,17 @@
 
 Shared [Claude Code](https://claude.com/claude-code) skills and agent configuration.
 
+## License and Attribution
+
+Some skills are adapted from third-party skill repositories. The adapted skill files include source notes, and upstream MIT license notices are preserved in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Current adapted sources:
+
+| Skill | Source | Upstream license | Notes |
+|-------|--------|------------------|-------|
+| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | MIT | Adapted for Hermes Agent; handoff changed to the installed `writing-plans` skill. |
+| `grilling` | [`mattpocock/skills`](https://github.com/mattpocock/skills) | MIT | Adapted for Hermes Agent with concise decision-stress-test output. |
+
 ## Install
 
 Requires [GitHub CLI](https://cli.github.com/) `2.90+` with the `skill` subcommand.
