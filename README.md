@@ -1,17 +1,6 @@
 # agent-skills
 
-Shared [Claude Code](https://claude.com/claude-code) skills and agent configuration.
-
-## License and Attribution
-
-Some skills are adapted from third-party skill repositories. The adapted skill files include source notes, and upstream MIT license notices are preserved in each adapted skill directory as `NOTICE.md`.
-
-Current adapted sources:
-
-| Skill | Source | Upstream license | Notes |
-|-------|--------|------------------|-------|
-| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | MIT | Notice: `skills/brainstorming/NOTICE.md`; handoff changed to the installed `writing-plans` skill. |
-| `grilling` | [`mattpocock/skills`](https://github.com/mattpocock/skills) | MIT | Notice: `skills/grilling/NOTICE.md`; adapted for concise decision stress-testing. |
+Shared agent skills for [Claude Code](https://claude.com/claude-code) and the [Hermes Agent](https://github.com/nousresearch/hermes-agent).
 
 ## Install
 
@@ -50,7 +39,6 @@ gh skill update --all
 | Skill | Description |
 |-------|-------------|
 | `acli-jira` | Jira CLI operations and JQL queries |
-| `brainstorming` | Turn rough ideas into approved design specs before implementation, then hand off to Hermes writing-plans |
 | `buffett-investment-strategy` | Warren Buffett's investment analysis framework from 60 years of Berkshire Hathaway letters and annual meetings |
 | `chrome-devtools` | Launch Chrome with remote debugging for DevTools MCP integration |
 | `deep-research` | Deep multi-step web research using Agent Teams for parallel, coordinated investigation |
@@ -76,3 +64,34 @@ gh skill update --all
 | `styling` | CSS and Tailwind styling best practices |
 | `tw-trading-agents` | Multi-agent Taiwan-stock investment research using the TradingAgents methodology and FinMind data |
 | `youtube-transcribe` | Transcribe a YouTube video or local audio/video file into text/SRT/JSON locally (mlx-whisper on Apple Silicon, faster-whisper elsewhere) |
+
+## Hermes Skills
+
+Skills under `hermes-skills/` target the [Hermes Agent](https://github.com/nousresearch/hermes-agent) and are installed with `hermes skills install` (not `gh skill`). Hermes resolves a skill by its full repository path, so the `hermes-skills/` location is addressed directly in the identifier.
+
+### Install a Hermes Skill
+
+Replace `<skill-name>` with the skill directory name under `hermes-skills/` (e.g. `brainstorming`):
+
+```bash
+hermes skills install chenwei791129/agent-skills/hermes-skills/<skill-name>
+```
+
+Example:
+
+```bash
+hermes skills install chenwei791129/agent-skills/hermes-skills/brainstorming
+```
+
+Alternatively, register this repository as a custom tap pointing at `hermes-skills/`, then install by short name:
+
+```bash
+hermes skills tap add chenwei791129/agent-skills --path hermes-skills/
+hermes skills install brainstorming
+```
+
+### Available Hermes Skills
+
+| Skill | Description |
+|-------|-------------|
+| `brainstorming` | Turn rough ideas into approved design specs before implementation, then hand off to Hermes writing-plans |
