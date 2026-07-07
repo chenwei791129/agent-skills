@@ -71,27 +71,31 @@ Skills under `hermes-skills/` target the [Hermes Agent](https://github.com/nousr
 
 ### Install a Hermes Skill
 
-Replace `<skill-name>` with the skill directory name under `hermes-skills/` (e.g. `brainstorming`):
+Replace `<skill-path>` with the skill directory path under `hermes-skills/` (e.g. `superpowers/brainstorming`):
 
 ```bash
-hermes skills install chenwei791129/agent-skills/hermes-skills/<skill-name>
+hermes skills install chenwei791129/agent-skills/hermes-skills/<skill-path>
 ```
 
 Example:
 
 ```bash
-hermes skills install chenwei791129/agent-skills/hermes-skills/brainstorming
+hermes skills install chenwei791129/agent-skills/hermes-skills/superpowers/brainstorming
 ```
 
-Alternatively, register this repository as a custom tap pointing at `hermes-skills/`, then install by short name:
-
-```bash
-hermes skills tap add chenwei791129/agent-skills --path hermes-skills/
-hermes skills install brainstorming
-```
+Because this repository keeps Hermes-specific skills under `hermes-skills/` rather than the default tap path, prefer the full repository path form above.
 
 ### Available Hermes Skills
 
 | Skill | Description |
 |-------|-------------|
-| `brainstorming` | Turn rough ideas into approved design specs before implementation, then hand off to Hermes writing-plans |
+| `superpowers/brainstorming` | Turn rough ideas into approved design specs before implementation, then hand off to Hermes writing-plans |
+| `superpowers/writing-plans` | Write Hermes-ready implementation plans with bite-sized tasks, exact files, tests, and commands |
+| `superpowers/using-git-worktrees` | Ensure development happens in an isolated git workspace before implementation |
+| `superpowers/subagent-driven-development` | Execute plans with Hermes subagents, task briefs, review packages, and combined task review |
+| `superpowers/test-driven-development` | Enforce RED/GREEN/REFACTOR for features and bugfixes |
+| `superpowers/systematic-debugging` | Debug by reproducing and isolating root cause before fixes |
+| `superpowers/requesting-code-review` | Run final whole-branch review using Hermes subagents and review packages |
+| `superpowers/receiving-code-review` | Process review findings systematically without losing context |
+| `superpowers/verification-before-completion` | Require fresh verification evidence before success claims |
+| `superpowers/finishing-a-development-branch` | Finish a verified branch via merge, PR, keep, or discard workflow |
