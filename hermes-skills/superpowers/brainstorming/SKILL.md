@@ -192,3 +192,6 @@ Do not invoke another implementation skill before `writing-plans` has produced t
 ---
 
 Adapted for Hermes Agent from obra/superpowers `brainstorming`, with the Superpowers repo-relative `writing-plans` handoff changed to Hermes' installed `writing-plans` skill and the browser visual companion omitted for portability.
+
+
+This skill now lives under the Hermes Superpowers collection at `hermes-skills/superpowers/brainstorming`; install it via that full path or through a tap rooted at `hermes-skills/`.

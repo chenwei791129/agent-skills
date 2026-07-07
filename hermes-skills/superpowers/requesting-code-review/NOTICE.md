@@ -1,6 +1,8 @@
 # Third-Party Notice
 
-This skill is adapted for Hermes Agent from [`obra/superpowers`](https://github.com/obra/superpowers), skill `brainstorming`.
+This Hermes skill is adapted from [`obra/superpowers`](https://github.com/obra/superpowers), skill `requesting-code-review`.
+
+Upstream revision inspected for this port: `d884ae04edebef577e82ff7c4e143debd0bbec99` (Superpowers v6.1.1).
 
 Upstream license: MIT License.
 
