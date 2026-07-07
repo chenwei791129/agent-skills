@@ -100,3 +100,5 @@ Because this repository keeps Hermes-specific skills under `hermes-skills/` rath
 | `superpowers/receiving-code-review` | Process review findings systematically without losing context |
 | `superpowers/verification-before-completion` | Require fresh verification evidence before success claims |
 | `superpowers/finishing-a-development-branch` | Finish a verified branch via merge, PR, keep, or discard workflow |
+| `platform/skill-porting-and-adaptation` | Audit, port, and adapt external AI-agent skills into Hermes while preserving support files and harness semantics |
+| `platform/hermes-plugin-operations` | Install, reinstall, migrate, and verify Hermes Agent plugins under `~/.hermes/plugins` |
