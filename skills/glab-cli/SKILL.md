@@ -189,6 +189,14 @@ glab repo view --web
 
 ### Create MR
 
+**Before creating an MR — mandatory code review gate.** Do NOT run `glab mr create` straight after finishing work. Reviewing only happens after the branch is exposed for human review otherwise, which is too late. First review the completed branch diff:
+
+1. Dispatch a code review over the full branch diff — use `requesting-code-review` (or a built-in `code-review` skill / a reviewer subagent) when available; otherwise review the complete `git diff <base>...HEAD` yourself.
+2. Fix every Critical or Important finding.
+3. Re-review after the fixes and repeat until no Critical or Important findings remain (or stop and report a blocker).
+
+Only then create the MR:
+
 ```bash
 glab mr create
 glab mr create --title "feat: add feature" --description "desc"
