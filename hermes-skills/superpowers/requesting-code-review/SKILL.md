@@ -1,6 +1,6 @@
 ---
 name: requesting-code-review
-description: Use when completing tasks, implementing major features, or before merging to verify work meets requirements
+description: Use when completing tasks, implementing major features, or before merging/opening a PR/MR to verify work meets requirements
 ---
 
 # Requesting Code Review
@@ -14,7 +14,14 @@ Dispatch a Hermes reviewer subagent to catch issues before they cascade. The rev
 **Mandatory:**
 - After each task in `subagent-driven-development`.
 - After completing a major feature.
-- Before merging or opening a PR.
+- Before merging or opening a PR/MR.
+
+**Hard gate before PR/MR creation:** after implementation is complete and before
+you create the PR/MR, you must dispatch at least one Hermes reviewer subagent using
+this skill. Do not substitute self-review, local tests, or a diff skim for this
+gate. If the reviewer reports Critical or Important issues, fix them and run
+another reviewer subagent pass before opening the PR/MR. Repeat until no
+Critical or Important issues remain, or until you stop and report a blocker.
 
 **Optional but valuable:**
 - When stuck and a fresh perspective may help.
@@ -78,12 +85,14 @@ Dispatch Hermes reviewer using code-reviewer.md. Ask for a structured result:
 
 **Subagent-Driven Development:** review after each task, fix before moving to the next task, and re-review after Critical/Important fixes.
 
-**Ad-hoc development:** review before merge, PR, or any success claim that depends on code quality.
+**Ad-hoc development:** review before merge, PR/MR creation, or any success claim that depends on code quality. If an ad-hoc change is already committed, generate a review package for the branch diff and dispatch a reviewer before creating the PR/MR.
 
 ## Red Flags
 
 **Never:**
 - Skip review because "it's simple".
+- Open a PR/MR before at least one reviewer subagent has reviewed the completed implementation.
+- Treat a review with open Critical or Important findings as approved.
 - Paste a huge diff into the controller context when a review package file can be handed over.
 - Ignore Critical issues.
 - Proceed with unfixed Important issues.

@@ -1,6 +1,6 @@
 ---
 name: finishing-a-development-branch
-description: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup
+description: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR/MR, or cleanup
 ---
 
 # Finishing a Development Branch
@@ -71,7 +71,7 @@ Or ask: "This branch split from main - is that correct?"
 Implementation complete. What would you like to do?
 
 1. Merge back to <base-branch> locally
-2. Push and create a Pull Request
+2. Push and create a Pull Request / Merge Request
 3. Keep the branch as-is (I'll handle it later)
 4. Discard this work
 
@@ -83,7 +83,7 @@ Which option?
 ```
 Implementation complete. You're on a detached HEAD (externally managed workspace).
 
-1. Push as new branch and create a Pull Request
+1. Push as new branch and create a Pull Request / Merge Request
 2. Keep as-is (I'll handle it later)
 3. Discard this work
 
@@ -118,7 +118,13 @@ Then: Cleanup worktree (Step 6), then delete branch:
 git branch -d <feature-branch>
 ```
 
-#### Option 2: Push and Create PR
+#### Any option that pushes and creates a PR/MR
+
+This applies to normal/named-branch Option 2 and detached-HEAD Option 1.
+Before creating the PR/MR, load and follow `requesting-code-review`. This is a
+hard gate: dispatch at least one reviewer subagent against the completed branch
+diff, fix any Critical or Important findings, and repeat review passes until no
+Critical or Important findings remain. Only then push/create the PR/MR.
 
 ```bash
 # Push branch
@@ -186,7 +192,7 @@ git worktree prune  # Self-healing: clean up any stale registrations
 | Option | Merge | Push | Keep Worktree | Cleanup Branch |
 |--------|-------|------|---------------|----------------|
 | 1. Merge locally | yes | - | - | yes |
-| 2. Create PR | - | yes | yes | - |
+| 2. Create PR/MR | - | yes | yes | - |
 | 3. Keep as-is | - | - | yes | - |
 | 4. Discard | - | - | - | yes (force) |
 
@@ -195,6 +201,10 @@ git worktree prune  # Self-healing: clean up any stale registrations
 **Skipping test verification**
 - **Problem:** Merge broken code, create failing PR
 - **Fix:** Always verify tests before offering options
+
+**Opening a PR/MR without subagent review**
+- **Problem:** Code review happens only after exposing the branch for human review
+- **Fix:** Before PR/MR creation, use `requesting-code-review`, dispatch at least one reviewer subagent, fix Critical/Important findings, and re-review until clear
 
 **Open-ended questions**
 - **Problem:** "What should I do next?" is ambiguous
@@ -224,6 +234,8 @@ git worktree prune  # Self-healing: clean up any stale registrations
 
 **Never:**
 - Proceed with failing tests
+- Open a PR/MR before a `requesting-code-review` reviewer subagent has reviewed the completed branch
+- Open a PR/MR with unresolved Critical or Important review findings
 - Merge without verifying tests on result
 - Delete work without confirmation
 - Force-push without explicit request
@@ -233,6 +245,8 @@ git worktree prune  # Self-healing: clean up any stale registrations
 
 **Always:**
 - Verify tests before offering options
+- Run at least one `requesting-code-review` reviewer subagent pass before creating a PR/MR
+- Re-run reviewer subagents after fixing Critical/Important findings, until the review has no Critical/Important findings
 - Detect environment before presenting menu
 - Present exactly 4 options (or 3 for detached HEAD)
 - Get typed confirmation for Option 4
