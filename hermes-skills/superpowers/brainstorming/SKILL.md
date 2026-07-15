@@ -103,7 +103,7 @@ After each meaningful section, put the complete reviewable section directly befo
 
 ## Self-Contained Review Gates
 
-Every approval gate must be self-contained: the complete artifact under review and its approval question must be part of the same user-visible interaction.
+Every approval gate — section-by-section design review and final spec review — must be self-contained: the complete artifact under review and its approval question must be part of the same user-visible interaction.
 
 - When using a structured question or choice tool, put the complete artifact in the tool's visible prompt or question field.
 - Use choice labels only to represent decisions, such as **Approve** or **Request changes**. Labels must not carry or replace the artifact.
@@ -143,7 +143,7 @@ choices:
 
 > Spec written to `docs/superpowers/specs/example-design.md`. Please approve it.
 
-**Good:** structured choice interaction pseudocode containing a complete, intentionally short spec
+**Good:** structured choice interaction pseudocode containing a complete, intentionally short spec (using the same section structure as the canonical template in Documentation below)
 
 ````yaml
 question: |
@@ -210,7 +210,7 @@ docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md
 
 Project or user preferences override this default.
 
-The spec should include:
+The spec should include (this is the canonical section structure referenced elsewhere in this skill):
 
 ```markdown
 # <Feature / Change> Design
@@ -250,7 +250,7 @@ Fix issues inline, then proceed.
 
 ## User Review Gate
 
-After the self-review passes, ask the user to review the written spec before proceeding. The approval interaction must include the complete spec Markdown, not just its location or a summary. For example:
+After the self-review passes, ask the user to review the written spec before proceeding. The approval interaction must include the complete spec Markdown, not just its location or a summary. For example, using the same section structure as the canonical template in Documentation above:
 
 > Complete spec for review:
 >
@@ -312,7 +312,7 @@ Do not invoke another implementation skill before `writing-plans` has produced t
 
 ## Red Flags
 
-Never:
+Never (these restate the Self-Contained Review Gates rules above as explicit prohibitions):
 
 - Ask the user to approve a schema, design section, or spec that is not completely visible in the approval interaction.
 - Treat a path, summary, attachment, choice label, or separate preceding message as the reviewable artifact.
