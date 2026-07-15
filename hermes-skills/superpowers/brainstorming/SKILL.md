@@ -118,19 +118,24 @@ Every approval gate must be self-contained: the complete artifact under review a
 > Does the proposed schema meet your needs?
 > Choices: Approve / Request changes
 
-**Good:**
+**Good:** structured choice interaction pseudocode
 
-> Proposed schema:
->
-> ```sql
-> CREATE TABLE projects (
->   id INTEGER PRIMARY KEY,
->   name TEXT NOT NULL
-> );
-> ```
->
-> Does this schema meet your needs?
-> Choices: Approve / Request changes
+````yaml
+question: |
+  Proposed schema:
+
+  ```sql
+  CREATE TABLE projects (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL
+  );
+  ```
+
+  Does this schema meet your needs?
+choices:
+  - Approve current schema
+  - Request schema changes
+````
 
 ### Final spec approval examples
 
@@ -138,25 +143,48 @@ Every approval gate must be self-contained: the complete artifact under review a
 
 > Spec written to `docs/superpowers/specs/example-design.md`. Please approve it.
 
-**Good:**
+**Good:** structured choice interaction pseudocode containing a complete, intentionally short spec
 
-> Please review the complete spec below.
->
-> ```markdown
-> # Example Design
->
-> ## Goal
-> Add project records with required names.
->
-> ## Proposed Design
-> Store each project with an integer identifier and a non-empty name.
->
-> ## Testing / Verification
-> Verify valid records are accepted and missing names are rejected.
-> ```
->
-> Do you approve this spec for implementation planning?
-> Choices: Approve / Request changes
+````yaml
+question: |
+  Please review the complete spec below.
+
+  ```markdown
+  # Project Records Design
+
+  ## Goal
+  Add project records with required names.
+
+  ## Non-Goals
+  Importing, exporting, and sharing projects are excluded.
+
+  ## Context
+  The application does not currently persist projects.
+
+  ## Proposed Design
+  Store each project with an integer identifier and a non-empty name.
+
+  ## Components / Boundaries
+  The project repository owns persistence; callers supply names.
+
+  ## Data or Control Flow
+  A caller submits a name, the repository validates it, and storage assigns the identifier.
+
+  ## Error Handling
+  Reject empty names without writing a record.
+
+  ## Testing / Verification
+  Verify valid records are accepted and missing names are rejected.
+
+  ## Open Questions
+  None.
+  ```
+
+  Do you approve this spec for implementation planning?
+choices:
+  - Approve complete spec
+  - Request spec changes
+````
 
 ## Design for Isolation and Clarity
 
@@ -235,11 +263,26 @@ After the self-review passes, ask the user to review the written spec before pro
 > ## Non-Goals
 > <Complete non-goals text>
 >
+> ## Context
+> <Complete context text>
+>
 > ## Proposed Design
 > <Complete proposed design text>
 >
+> ## Components / Boundaries
+> <Complete components and boundaries text>
+>
+> ## Data or Control Flow
+> <Complete data or control flow text>
+>
+> ## Error Handling
+> <Complete error-handling text>
+>
 > ## Testing / Verification
 > <Complete verification text>
+>
+> ## Open Questions
+> <Complete open-questions text, or `None` when there are none>
 > ```
 >
 > Do you approve this complete spec so I can create the implementation plan, or do you want changes?
