@@ -32,7 +32,7 @@ Create and complete tasks in this order:
 5. **Present the design** — section by section, scaled to complexity; get user approval as you go.
 6. **Write the design doc** — save the approved design to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`, unless the user or project has a different preferred location.
 7. **Self-review the spec** — fix placeholders, contradictions, ambiguity, and scope creep.
-8. **Ask the user to review the written spec** — do not proceed until approved.
+8. **Ask the user to review the written spec** — put the complete spec Markdown inside the approval interaction; do not proceed until approved.
 9. **Transition to planning** — load and use Hermes' `writing-plans` skill to create the implementation plan.
 
 ## Process Flow
@@ -99,7 +99,64 @@ Cover the relevant pieces:
 - Testing and verification strategy
 - Out-of-scope items
 
-After each meaningful section, ask whether it looks right so far. If the user says no, revise before moving on.
+After each meaningful section, put the complete reviewable section directly before the approval question in the same user-visible interaction. Show schemas, interfaces, examples, and other structured technical artifacts in a fenced code block. If the user says no, revise before moving on.
+
+## Self-Contained Review Gates
+
+Every approval gate must be self-contained: the complete artifact under review and its approval question must be part of the same user-visible interaction.
+
+- When using a structured question or choice tool, put the complete artifact in the tool's visible prompt or question field.
+- Use choice labels only to represent decisions, such as **Approve** or **Request changes**. Labels must not carry or replace the artifact.
+- An artifact name, local path, summary, attachment, or separate preceding message may supplement the interaction, but cannot substitute for the complete artifact.
+- If a tool's content limit cannot hold the artifact, use a plain inline prompt or obtain section-by-section approval with each complete section visible. Never send an empty or content-free choice card.
+- If the artifact changes after it was displayed, show the updated complete artifact again before requesting approval. Withdraw and reissue any approval request that referred to unseen or stale content.
+
+### Schema approval examples
+
+**Bad:**
+
+> Does the proposed schema meet your needs?
+> Choices: Approve / Request changes
+
+**Good:**
+
+> Proposed schema:
+>
+> ```sql
+> CREATE TABLE projects (
+>   id INTEGER PRIMARY KEY,
+>   name TEXT NOT NULL
+> );
+> ```
+>
+> Does this schema meet your needs?
+> Choices: Approve / Request changes
+
+### Final spec approval examples
+
+**Bad:**
+
+> Spec written to `docs/superpowers/specs/example-design.md`. Please approve it.
+
+**Good:**
+
+> Please review the complete spec below.
+>
+> ```markdown
+> # Example Design
+>
+> ## Goal
+> Add project records with required names.
+>
+> ## Proposed Design
+> Store each project with an integer identifier and a non-empty name.
+>
+> ## Testing / Verification
+> Verify valid records are accepted and missing names are rejected.
+> ```
+>
+> Do you approve this spec for implementation planning?
+> Choices: Approve / Request changes
 
 ## Design for Isolation and Clarity
 
@@ -155,7 +212,7 @@ Commit the design document when working in a git repository and committing is ap
 
 Before asking the user to review the spec, check it with fresh eyes:
 
-1. **Placeholder scan:** remove `TBD`, `TODO`, incomplete sections, and vague requirements.
+1. **Placeholder scan:** remove placeholder markers, incomplete sections, and vague requirements.
 2. **Internal consistency:** fix contradictions between sections.
 3. **Scope check:** ensure the spec is focused enough for one implementation plan.
 4. **Ambiguity check:** make requirements explicit when they could be interpreted multiple ways.
@@ -165,9 +222,29 @@ Fix issues inline, then proceed.
 
 ## User Review Gate
 
-After the self-review passes, ask the user to review the written spec before proceeding:
+After the self-review passes, ask the user to review the written spec before proceeding. The approval interaction must include the complete spec Markdown, not just its location or a summary. For example:
 
-> Spec written to `<path>`. Please review it and tell me if you want changes before I create the implementation plan.
+> Complete spec for review:
+>
+> ```markdown
+> # <Feature / Change> Design
+>
+> ## Goal
+> <Complete goal text>
+>
+> ## Non-Goals
+> <Complete non-goals text>
+>
+> ## Proposed Design
+> <Complete proposed design text>
+>
+> ## Testing / Verification
+> <Complete verification text>
+> ```
+>
+> Do you approve this complete spec so I can create the implementation plan, or do you want changes?
+
+The real interaction must replace every example placeholder above with the full reviewed content. A local path, summary, or attachment may be included for orientation or download, but is supplementary only and never replaces the complete spec in the approval interaction. If a structured tool cannot fit the content, use a plain inline prompt or section-by-section approval rather than a content-free choice card.
 
 If the user requests changes, update the spec and repeat the self-review. Only proceed once the user approves.
 
@@ -186,8 +263,19 @@ Do not invoke another implementation skill before `writing-plans` has produced t
 - **YAGNI ruthlessly** — remove unnecessary features from every design.
 - **Explore alternatives** — present 2–3 approaches before settling.
 - **Incremental validation** — present design sections and get approval before moving on.
+- **Self-contained approval** — include the complete artifact and decision question in the same interaction.
 - **Evidence over guessing** — inspect the codebase when the answer can be discovered.
 - **Design before implementation** — no code or scaffolding before approval.
+
+## Red Flags
+
+Never:
+
+- Ask the user to approve a schema, design section, or spec that is not completely visible in the approval interaction.
+- Treat a path, summary, attachment, choice label, or separate preceding message as the reviewable artifact.
+- Request approval for stale content after the artifact has changed; show the updated complete artifact again.
+- Use a content-free choice card because the complete artifact exceeds the tool's limit; switch to a plain inline prompt or complete section-by-section review.
+- Proceed to implementation or `writing-plans` before the applicable visible artifact is approved.
 
 ---
 
