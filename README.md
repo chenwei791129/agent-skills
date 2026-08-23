@@ -51,6 +51,7 @@ gh skill update --all
 | `go-concurrency-patterns` | Go concurrency programming and goroutine patterns |
 | `grafana` | Operate a self-hosted Grafana from the terminal via the gcx CLI — dashboards, datasource queries (PromQL/LogQL/TraceQL), alerts, and dashboards-as-code |
 | `grilling` | Relentlessly stress-test a plan or design one question at a time before implementation |
+| `gws-gmail` | Operate Gmail through the gws CLI — mailbox triage, label taxonomies, filter design, and bulk archive/delete, with the API's silent-failure traps and untrusted-mail rules |
 | `malware-repo-analysis` | Malware and supply chain attack detection in third-party git repositories using Agent Teams parallel analysis |
 | `ndc-lightscore` | Fetch Taiwan NDC 景氣對策信號 latest score, historical scores, red-light streaks, and next publish date |
 | `newcity` | Query mail/parcels, community points, and announcements (with attachments) from the Newcity community property app (itlife.com.tw / NewcityWebApi) |
