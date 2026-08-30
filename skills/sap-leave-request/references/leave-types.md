@@ -1,14 +1,15 @@
 # Leave types (時間類型)
 
 The full set of options in the `時間類型` (leave type) combobox of the SAP
-SuccessFactors `要求休假` (request-leave) form. To select one, `fill` the
-**full name (Chinese and English included)** then press Enter; the name must
-match the table below exactly.
+SuccessFactors `要求休假` (request-leave) form. To select one, focus the combobox,
+press F4, snapshot the expanded listbox, and click the **exact live option**.
+Never use `fill`+Enter/type-ahead: it can alter only the displayed text while
+leaving SAP's internal key on the default annual-leave type.
 
 The `常見口語` column lists the colloquial terms (Chinese and English) a user
 might say — map those to the official name in the first column.
 
-| Official name (fill this) | 常見口語 |
+| Official name (select this exact option) | 常見口語 |
 |---|---|
 | `Annual Leave 公司特休假` | 特休、年假、特休假、annual leave、AL、paid leave、vacation |
 | `Award Leave 獎勵假` | 獎勵假、award leave |

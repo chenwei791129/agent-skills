@@ -107,28 +107,43 @@ agent-browser snapshot -i
 
 ### Step 2 — Pick the leave type (時間類型)
 
-This is a UI5 combobox; a plain click won't expand it, but **type-ahead is
-reliable**: `fill` the full leave-type name, then press Enter:
+**Never use `fill`+Enter/type-ahead to change this combobox.** In some SAP UI5
+forms that sequence can change only the displayed text while leaving the
+internal selected time-type key at the default `Annual Leave 公司特休假`. The
+form can then submit annual leave even though the snapshot text appears to show
+a different leave type.
 
-```bash
-agent-browser fill '<時間類型-ref>' "Personal Leave 事假"
-agent-browser press Enter
-agent-browser snapshot -i        # confirm the combobox value changed
-```
-
-The leave-type name must match the system option **exactly** (Chinese and
-English included). See the full list in `references/leave-types.md`. Map the
-user's colloquial term (e.g. "特休", "annual leave") to the official name; when
-unsure, press F4 to expand and list the actual options first:
+Always select from the real option list:
 
 ```bash
 agent-browser focus '<時間類型-ref>'
 agent-browser press F4
-agent-browser snapshot           # lists every option
+agent-browser snapshot -i
+# Click the exact `option "..."` ref from the expanded listbox.
+agent-browser click '<exact-option-ref>'
+sleep 2
+agent-browser snapshot -i
 ```
 
-The default type is `Annual Leave 公司特休假`; if that's what the user wants,
-you can skip this step.
+The leave-type name must match the system option **exactly** (Chinese and
+English included). See the full list in `references/leave-types.md`. Map the
+user's colloquial term to the official name, expand with F4, and click the exact
+option returned by the live system.
+
+After clicking, require **semantic evidence that SAP committed the selection**,
+not only matching combobox text:
+
+- The listbox has closed (`expanded=false`).
+- The exact expected leave type appears in the combobox.
+- Type-specific fields or state appear. For full-paid or half-paid sick leave,
+  `Date Of Consultation` must be present and the sick-leave balance must be
+  shown. If that field does not appear, the internal selection did not change —
+  **do not submit**; reopen with F4 and click the actual option again.
+- When changing away from the default annual leave, never accept an unchanged
+  annual-leave-only form as proof of success.
+
+The default type is `Annual Leave 公司特休假`; skip selection only when the user
+explicitly requests that exact type.
 
 ### Step 3 — Fill the dates
 
@@ -144,7 +159,14 @@ sleep 2
 agent-browser snapshot -i
 ```
 
-### Step 3.5 — Upload a proof attachment (when needed, e.g. sick leave)
+### Step 3.5 — Fill sick-leave-specific fields and upload proof
+
+For full-paid or half-paid sick leave, a correctly committed time-type selection
+adds a `Date Of Consultation` textbox. Fill it with the actual consultation date
+(the medical proof date unless the user specifies otherwise), then move focus by
+uploading the attachment or clicking another form control. Re-snapshot and
+require the localized date value to appear. If this field is absent, return to
+Step 2 — the sick-leave option was not truly selected.
 
 Sick-leave types often need proof. Behind the attachment field is a hidden
 `<input type="file">`; `upload` to it directly — **do not click the
@@ -179,16 +201,25 @@ Notes:
 
 ### Step 4 — Validate, then submit
 
-After filling, snapshot and check two things:
+After filling, take a fresh snapshot and verify **all** of the following before
+clicking submit:
 
-1. **`正在要求` (requesting) > 0 days.** If it's `0 天`, the chosen dates
-   contain no working day (a weekend or a company holiday), or a red error
-   appears at the top ("您要求的休假必須至少包括一個工作日"). **Do not submit in
-   this case** — report which days are invalid and ask the user to change them.
-2. **The `提交` (submit) button is not disabled.** It only enables once the
-   dates are valid.
+1. The `時間類型` combobox exactly equals the official leave type requested.
+   Combobox text alone is necessary but not sufficient.
+2. The expected type-specific UI is present. For full-/half-paid sick leave,
+   `Date Of Consultation` must exist and contain the expected date. Its absence
+   proves SAP still holds a different internal type (commonly the default annual
+   leave), even if the combobox text looks correct.
+3. `開始日期` and `結束日期` exactly match the requested dates.
+4. `正在要求` is the expected value and is greater than `0 天`. If it is zero,
+   the dates contain no working day or the form shows an error; **do not submit**.
+5. Any requested attachment appears by exact filename in the attachment list.
+6. The `提交` button is enabled.
 
-Only when both pass, click submit:
+Save a pre-submit screenshot. If any check fails, do not click submit. Correct
+the form, re-snapshot, and repeat the complete checklist.
+
+Only when all checks pass, click submit:
 
 ```bash
 agent-browser snapshot -i        # get the latest 提交 ref and read the 正在要求 day count
@@ -198,15 +229,44 @@ agent-browser wait --load networkidle
 agent-browser snapshot -i
 ```
 
-Capture a screenshot for the record and confirm the result:
+Capture a screenshot of the submit result, but **returning to the home page is
+not proof that the leave type was saved correctly**:
 
 ```bash
 agent-browser screenshot /tmp/sap_leave_result.png
 ```
 
-Report back to the user: leave type, start/end dates, day count, and the
-submission result. If any error message appears (a red note / message strip),
-relay it verbatim — do not treat it as success.
+### Step 5 — Mandatory post-submit record verification
+
+Never report success from the form snapshot or home-page redirect alone. Verify
+the persisted request in SAP's leave calendar:
+
+1. Open the employee's `休假` / Time Off page using the global action search.
+2. Confirm the calendar covers the request date.
+3. Click the exact date cell.
+4. Read the resulting absence list/popover and require an exact match for:
+   - official leave type,
+   - day count,
+   - date/date range,
+   - a valid submitted status such as `待決` or `已批准`.
+5. Save a verification screenshot.
+
+Example of acceptable persisted evidence:
+
+```text
+Full-Paid Sick Leave 普通傷病假(全薪) (1 天)
+日期：2026年6月22日 週一
+狀態：待決
+```
+
+If the date cell or popover shows a different type (especially
+`Annual Leave 公司特休假`), **do not claim success**. Report the mismatch
+immediately and do not create another request until the incorrect one is
+withdrawn/cancelled or the user explicitly authorizes correction.
+
+Only after this persisted-record check passes may you report the leave type,
+dates, day count, attachment status, workflow status, and submission result.
+Relay any error message verbatim.
 
 ## Cancel / abort
 
@@ -220,6 +280,7 @@ To abandon a half-filled form, click the `取消` (cancel) button in the dialog
 | `Element is covered by <ui5-icon>` | The `要求休假` button is covered by an icon | Use a coordinate click (Step 1 handles this) |
 | Still on the SSO login page after login; username missing the backslash | `.env` not single-quoted, so `\` was eaten | Change the account to `'DOMAIN\your.account'` |
 | `正在要求 0 天` / red "needs a working day" | Dates fall on a weekend or company holiday | Use valid working days; do not submit |
-| 時間類型 combobox won't expand on click | UI5 custom element | Use `fill`+Enter (type-ahead) or F4 to expand |
+| 時間類型 text looks correct but type-specific fields do not appear | Type-ahead changed display text without committing SAP's internal key | Never use fill+Enter; press F4 and click the exact live option, then require semantic type-specific evidence |
+| Submit returns to home, but persisted leave type is unknown | Home redirect proves navigation only, not the saved HR record | Open the Time Off calendar, click the request date, and verify persisted type/day/date/status before reporting success |
 | A ref action reports element not found | Ref went stale after the page changed | Re-run `snapshot -i` before acting |
 | Clicking the upload button opens a stuck native file dialog | agent-browser can't operate native dialogs | Use `upload 'input[type=file]' <absolute-path>` (Step 3.5) |
