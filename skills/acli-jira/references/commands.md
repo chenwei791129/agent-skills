@@ -90,22 +90,42 @@ acli jira workitem link list --key PROJ-123 --json
 
 ### Write Operations (Use with Caution)
 
+Check `<subcommand> --help` before unfamiliar or bulk writes because flags may change between `acli` releases. Current commands use flag-based selectors rather than positional work item keys.
+
 ```bash
 # Create
 acli jira workitem create --project PROJ --type Task --summary "Title" --json
 
-# Edit
-acli jira workitem edit KEY-123 --summary "New title" --json
+# Create a subtask
+acli jira workitem create \
+  --project PROJ \
+  --type Subtask \
+  --parent PROJ-100 \
+  --summary "Title" \
+  --assignee "user@example.com" \
+  --json
 
-# Transition
-acli jira workitem transition KEY-123 --transition "Done" --json
+# Edit
+acli jira workitem edit --key KEY-123 --summary "New title" --json
+
+# Transition one or more work items
+acli jira workitem transition --key "KEY-123,KEY-124" --status "Done" --yes --json
+
+# Transition a scoped JQL result set
+acli jira workitem transition \
+  --jql 'parent = PROJ-100 AND status != Done' \
+  --status "Done" \
+  --yes \
+  --json
 
 # Comment
 acli jira workitem comment create --key KEY-123 --body "Comment text" --json
 
 # Assign
-acli jira workitem assign KEY-123 --assignee "user@example.com" --json
+acli jira workitem assign --key KEY-123 --assignee "user@example.com" --yes --json
 ```
+
+After a bulk write, query the same bounded key/JQL set and verify the resulting count and field values. Do not blindly retry `workitem create`; first check whether Jira created the expected item despite a lost CLI response.
 
 ---
 
