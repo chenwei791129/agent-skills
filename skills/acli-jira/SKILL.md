@@ -23,15 +23,28 @@ acli jira workitem search --jql "project = PROJ" --csv
 
 ## Intermittent API Errors
 
-acli has **intermittent "unexpected error" failures** (~60-80% failure rate). This is an API/network issue, not syntax-related. **Retry the command** if it fails:
+`acli` may return intermittent `unexpected error` failures. For read-only commands, retry with a bounded attempt count:
 
 ```bash
-# If this fails, just run it again
+# If this fails with a transient error, retry it a few times.
 acli jira workitem view PROJ-123 --json
-# Error: unexpected error, trace id: xxx  <-- retry!
 ```
 
-For critical operations, consider using MCP tools which are more reliable.
+Do **not** blindly retry non-idempotent writes such as `workitem create`: the server may have completed the request even when the CLI lost the response. Query Jira for the expected result first, then retry only when it was not created. For transitions, assignments, and edits, inspect the current field value before retrying.
+
+For critical operations, consider using MCP tools when they are more reliable.
+
+## Confirm Write-command Syntax
+
+The write subcommands use flag-based selectors, and their flags may differ between `acli` releases. Before an unfamiliar or bulk write, check the installed command:
+
+```bash
+acli jira workitem transition --help
+acli jira workitem assign --help
+acli jira workitem edit --help
+```
+
+Current syntax uses `--key`/`--jql` plus `--status` for transitions; it does not use a positional key with `--transition`. See [references/commands.md](references/commands.md#write-operations-use-with-caution).
 
 ## Custom Fields (Example Mappings)
 
