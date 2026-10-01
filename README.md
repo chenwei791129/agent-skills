@@ -65,6 +65,7 @@ gh skill update --all
 | `slack-notify` | Send Slack notifications via Incoming Webhook with mrkdwn support |
 | `styling` | CSS and Tailwind styling best practices |
 | `tw-trading-agents` | Multi-agent Taiwan-stock investment research using the TradingAgents methodology and FinMind data |
+| `upstream-pr-rebase` | Rebase listed GitHub PRs onto the latest upstream base — checks for existing upstream implementations, resolves conflicts by intent, runs project tests, and pushes with an exact-SHA `--force-with-lease` |
 | `web-browsing` | Navigate, interact with, and read live web pages — agent-browser CLI for the browser, defuddle for clean Markdown extraction from JS-rendered or authenticated pages |
 | `youtube-transcribe` | Transcribe a YouTube video or local audio/video file into text/SRT/JSON locally (mlx-whisper on Apple Silicon, faster-whisper elsewhere) |
 
