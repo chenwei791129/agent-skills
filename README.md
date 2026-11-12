@@ -49,6 +49,7 @@ gh skill update --all
 | `gh-actions-permissions` | GitHub Actions workflow permissions management |
 | `glab-cli` | GitLab CLI repository and CI/CD management |
 | `go-concurrency-patterns` | Go concurrency programming and goroutine patterns |
+| `go-mcp-endpoint` | Add a stateless Streamable HTTP MCP endpoint (`/mcp`) to a Go service with the official go-sdk — tool design, schema and output pitfalls, small agent-friendly answers, tests, and gateway registration |
 | `grafana` | Operate a self-hosted Grafana from the terminal via the gcx CLI — dashboards, datasource queries (PromQL/LogQL/TraceQL), alerts, and dashboards-as-code |
 | `grilling` | Relentlessly stress-test a plan or design one question at a time before implementation |
 | `gws-gmail` | Operate Gmail through the gws CLI — mailbox triage, label taxonomies, filter design, and bulk archive/delete, with the API's silent-failure traps and untrusted-mail rules |
